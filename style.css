@@ -1,0 +1,19 @@
+ :root {
+   --bgColor: #0055aa;
+   --fgColor: #e40000;
+   --textSize: 50px;
+   font-family: sans-serif;
+ }
+
+ #cw {
+   position: fixed;
+   z-index: -1;
+   cursor: crosshair;
+   image-rendering: pixelated;
+ }
+
+ body {
+   margin: 0;
+   padding: 0;
+   background-color: rgb(37, 37, 37);
+ }
