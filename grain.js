@@ -2,24 +2,24 @@ Array.prototype.random = function () {
     return this[Math.floor((Math.random() * this.length))];
 }
 let log = console.log;
-import { createColormap,getMapNames } from "./colormaps.js";
+import { createColormap, getMapNames } from "./colormaps.js";
 
 function getMouseRowCol(event) {
 
     // Get the mouse coordinates relative to the canvas
     // in cavans pixels, not css pixels
-    var x = Math.floor(canvas.width/canvas.getBoundingClientRect().width*(event.clientX - canvas.getBoundingClientRect().left));
-    var y = Math.floor(canvas.width/canvas.getBoundingClientRect().width*(event.clientY - canvas.getBoundingClientRect().top));
-    return {'column':x,'row':y }
+    var x = Math.floor(canvas.width / canvas.getBoundingClientRect().width * (event.clientX - canvas.getBoundingClientRect().left));
+    var y = Math.floor(canvas.width / canvas.getBoundingClientRect().width * (event.clientY - canvas.getBoundingClientRect().top));
+    return { 'column': x, 'row': y }
     // Output the coordinates
     // console.log('Mouse Click Coordinates: X=' + x + ', Y=' + y);
 
 }
-function setSourceColumn(event){
-    let rowCol=getMouseRowCol(event);
+function setSourceColumn(event) {
+    let rowCol = getMouseRowCol(event);
     // log(rowCol)
-    sourceColumn=rowCol.column
-    
+    sourceColumn = rowCol.column
+
 }
 
 // Function to track mouse and touchscreen pointer movement
@@ -41,24 +41,24 @@ function trackPointerMovement() {
 
     // Function to update coordinates based on events
     function updateCoordinates(event) {
-      // Check if the event is a mouse event with the button pressed
-      if (event.type === 'mousemove' && !isMouseButtonPressed) {
-        return;
-      }
+        // Check if the event is a mouse event with the button pressed
+        if (event.type === 'mousemove' && !isMouseButtonPressed) {
+            return;
+        }
 
-      // Check if the event is a touch event
-      if (event.touches && event.touches.length > 0) {
-        // For touch events, use the first touch point
-        pointerX = event.touches[0].clientX;
-        pointerY = event.touches[0].clientY;
-      } else {
-        // For mouse events, use clientX and clientY directly
-        pointerX = event.clientX;
-        pointerY = event.clientY;
-      }
-      let columnx=Math.floor(canvas.width/canvas.getBoundingClientRect().width*pointerX );
-    //   log(columnx)
-      sourceColumn=columnx;
+        // Check if the event is a touch event
+        if (event.touches && event.touches.length > 0) {
+            // For touch events, use the first touch point
+            pointerX = event.touches[0].clientX;
+            pointerY = event.touches[0].clientY;
+        } else {
+            // For mouse events, use clientX and clientY directly
+            pointerX = event.clientX;
+            pointerY = event.clientY;
+        }
+        let columnx = Math.floor(canvas.width / canvas.getBoundingClientRect().width * pointerX);
+        //   log(columnx)
+        sourceColumn = columnx;
     }
 }
 
@@ -96,10 +96,10 @@ function add_grain(x, colourx) {
         ctx.putImageData(pix, x, Y - height[x] - 1);
         height[x]++;
         dhdx[x]--;
-        dhdx[x-1]++;
+        dhdx[x - 1]++;
         return true;
     }
-    else{
+    else {
         return false;
     }
     // dhdx = diff(height);
@@ -119,19 +119,19 @@ function random_tumble() {
             movePixel(x, Y - height[x], x + 1, Y - height[x + 1] - 1)
             height[x]--;
             height[x + 1]++;
-            dhdx[x-1]--;
-            dhdx[x]+=2;
-            dhdx[x+1]--;
+            dhdx[x - 1]--;
+            dhdx[x] += 2;
+            dhdx[x + 1]--;
 
         }
         else {
             movePixel(x + 1, Y - height[x + 1], x, Y - height[x] - 1)
             height[x + 1]--;
             height[x]++;
-            
-            dhdx[x-1]++;
-            dhdx[x]-=2;
-            dhdx[x+1]++;
+
+            dhdx[x - 1]++;
+            dhdx[x] -= 2;
+            dhdx[x + 1]++;
 
         }
         // dhdx = diff(height);
@@ -154,24 +154,24 @@ let ctx = canvas.getContext("2d",
 // Add a click event listener to the canvas
 canvas.addEventListener('click', setSourceColumn);
 
-let nCols = 200
-let colourMapNames=getMapNames()
-let colourMapName=getRandomElement(colourMapNames)
-log(colourMapName)
-let colours = createColormap({colormap:colourMapName, format: 'rgba', nshades: nCols, })
+
 // log(colors)
 
-let X = 50;
-let windowAR=window.innerWidth/window.innerHeight;
-let Y=Math.round(X/windowAR)
+let X = 200;
+let windowAR = window.innerWidth / window.innerHeight;
+let Y = Math.round(X / windowAR)
 // log('AR',windowAR,'Y',Y)
 canvas.height = Y;
 canvas.width = X;
 canvas.style.width = window.innerWidth + "px";
 
-let sourceColumn=Math.round((Math.random()*X))
+let sourceColumn = Math.round((Math.random() * X))
 // canvas.style.height = 400+"px";
-
+let nCols = X * 4
+let colourMapNames = getMapNames()
+let colourMapName = getRandomElement(colourMapNames)
+log(colourMapName)
+let colours = createColormap({ colormap: colourMapName, format: 'rgba', nshades: nCols, })
 
 let pix = ctx.getImageData(0, 0, 1, 1);
 let pixEmpty = ctx.getImageData(0, 0, 1, 1);
@@ -184,7 +184,7 @@ let height = new Int16Array(X);
 let dhdx = diff(height);
 
 let n = 0
-let nMax = X*Y;
+let nMax = X * Y;
 
 // let h0=[0,0,0,1,0,0]
 // let dh0=diff(h0)
@@ -199,10 +199,23 @@ let nMax = X*Y;
 
 
 function anim() {
-    if(( n < nMax)){
-        if (add_grain(sourceColumn, n % nCols)){
+    if ((n < nMax)) {
+        if (add_grain(sourceColumn, n % nCols)) {
             n++
         };
+        if (add_grain(sourceColumn, n % nCols)) {
+            n++
+        }; if (add_grain(sourceColumn, n % nCols)) {
+            n++
+        }; if (add_grain(sourceColumn, n % nCols)) {
+            n++
+        }; if (add_grain(sourceColumn, n % nCols)) {
+            n++
+        }; if (add_grain(sourceColumn, n % nCols)) {
+            n++
+        };
+
+
         while (random_tumble()) { };
         requestAnimationFrame(anim);
     }

@@ -20,24 +20,67 @@
   <link rel="mask-icon" href="/favicon/safari-pinned-tab.svg" color="#5bbad5">
   <meta name="msapplication-TileColor" content="#da532c">
   <meta name="theme-color" content="#ffffff">
-
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <meta property="og:image" content="/favicon/android-chrome-512x512.png">
 
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no" />
-
   <title>Grain</title>
   <meta name="description" content="Sand art simulator">
   <meta name="keywords" content="grain, sand, art, falling, simulator">
   <meta name="author" content="suprdory">
   <link rel="stylesheet" href="style.css">
-
 </head>
 
-<body style="touch-action:none">
-  <canvas id="cw"></canvas>
-</body>
-<script src="config.js"></script>
-<script src="grain.js" type="module"></script>
+<body>
+  <canvas id="cw" width="100%" height="100%"></canvas>
+
+  <body>
+    <div class="control-panel">
+      <button id="shuffleBtn"><i class="material-icons">shuffle</i></button>
+      <button id="flipBtn"><i class="material-icons">swap_vert</i></button>
+      <button id="changeColorBtn"><i class="material-icons">palette</i></button>
+      <button id="playPauseBtn" class="paused"><i class="material-icons">play_arrow</i></button>
+      <button id="screenshotBtn"><i class="material-icons">camera_alt</i></button>
+      <button id="hidePanelBtn"><i class="material-icons">close</i></button>
+    </div>
+    <!-- <canvas id="myCanvas" width="100%" height="100%"></canvas> -->
+
+    <script>
+      // JavaScript for toggling play/pause button
+      const playPauseBtn = document.getElementById('playPauseBtn');
+
+      playPauseBtn.addEventListener('click', () => {
+        playPauseBtn.classList.toggle('paused');
+        const icon = playPauseBtn.querySelector('i');
+        icon.textContent = playPauseBtn.classList.contains('paused') ? 'pause' : 'play_arrow';
+      });
+
+      // JavaScript for handling screenshot button (adjust as needed)
+      const screenshotBtn = document.getElementById('screenshotBtn');
+
+      screenshotBtn.addEventListener('click', () => {
+        // Add logic for taking a screenshot here
+        alert('Screenshot taken!');
+      });
+
+      // JavaScript for hiding and restoring the panel
+      const hidePanelBtn = document.getElementById('hidePanelBtn');
+      const controlPanel = document.querySelector('.control-panel');
+      const canvas = document.getElementById('cw');
+
+      hidePanelBtn.addEventListener('click', () => {
+        controlPanel.style.display = 'none';
+      });
+
+      // Double-click on the canvas to restore the panel
+      canvas.addEventListener('dblclick', () => {
+        controlPanel.style.display = 'flex';
+      });
+    </script>
+
+  </body>
+  <script src="config.js"></script>
+  <script src="grain.js" type="module"></script>
 
 </html>
