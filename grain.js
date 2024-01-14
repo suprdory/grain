@@ -21,6 +21,47 @@ function setSourceColumn(event){
     sourceColumn=rowCol.column
     
 }
+
+// Function to track mouse and touchscreen pointer movement
+function trackPointerMovement() {
+    // Initialize variables to store coordinates
+    let pointerX = 0;
+    let pointerY = 0;
+
+    // Flag to check if the mouse button is pressed
+    let isMouseButtonPressed = false;
+
+    // Add event listeners for mouse events
+    document.addEventListener('mousedown', () => { isMouseButtonPressed = true; });
+    document.addEventListener('mouseup', () => { isMouseButtonPressed = false; });
+    document.addEventListener('mousemove', updateCoordinates);
+
+    // Add an event listener for touch events
+    document.addEventListener('touchmove', updateCoordinates);
+
+    // Function to update coordinates based on events
+    function updateCoordinates(event) {
+      // Check if the event is a mouse event with the button pressed
+      if (event.type === 'mousemove' && !isMouseButtonPressed) {
+        return;
+      }
+
+      // Check if the event is a touch event
+      if (event.touches && event.touches.length > 0) {
+        // For touch events, use the first touch point
+        pointerX = event.touches[0].clientX;
+        pointerY = event.touches[0].clientY;
+      } else {
+        // For mouse events, use clientX and clientY directly
+        pointerX = event.clientX;
+        pointerY = event.clientY;
+      }
+      let columnx=Math.floor(canvas.width/canvas.getBoundingClientRect().width*pointerX );
+    //   log(columnx)
+      sourceColumn=columnx;
+    }
+}
+
 function diff(arr) {
     return arr.slice(1).map((value, index) => value - arr[index])
 }
@@ -128,7 +169,7 @@ canvas.height = Y;
 canvas.width = X;
 canvas.style.width = window.innerWidth + "px";
 
-let sourceColumn=X/2;
+let sourceColumn=Math.round((Math.random()*X))
 // canvas.style.height = 400+"px";
 
 
@@ -168,3 +209,8 @@ function anim() {
 }
 
 anim()
+
+
+trackPointerMovement();
+
+
