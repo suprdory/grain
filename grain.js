@@ -54,8 +54,14 @@ function add_grain(x, colourx) {
         pix.data[2] = colour[2];
         ctx.putImageData(pix, x, Y - height[x] - 1);
         height[x]++;
+        dhdx[x]--;
+        dhdx[x-1]++;
+        return true;
     }
-    dhdx = diff(height);
+    else{
+        return false;
+    }
+    // dhdx = diff(height);
 }
 function movePixel(x1, y1, x2, y2) {
     let pix1 = ctx.getImageData(x1, y1, 1, 1);
@@ -69,20 +75,25 @@ function random_tumble() {
         // x=0
         // log("x", x)
         if (dhdx[x] < 0) {
-            // log("highPix",x,height[x])
             movePixel(x, Y - height[x], x + 1, Y - height[x + 1] - 1)
             height[x]--;
             height[x + 1]++;
-            // pix.data=ctx.getImageData(x,height[x]+4,1,1).data
+            dhdx[x-1]--;
+            dhdx[x]+=2;
+            dhdx[x+1]--;
 
         }
         else {
             movePixel(x + 1, Y - height[x + 1], x, Y - height[x] - 1)
             height[x + 1]--;
             height[x]++;
+            
+            dhdx[x-1]++;
+            dhdx[x]-=2;
+            dhdx[x+1]++;
 
         }
-        dhdx = diff(height);
+        // dhdx = diff(height);
         return true;
     }
     else {
@@ -132,24 +143,28 @@ let height = new Int16Array(X);
 let dhdx = diff(height);
 
 let n = 0
-let nMax = 2000
+let nMax = X*Y;
+
+// let h0=[0,0,0,1,0,0]
+// let dh0=diff(h0)
+// log(h0,dh0)
+
+// let h=[0,0,0,2,0,0]
+// let dh=diff(h)
+// log(h,dh)
+// let h1=[0,0,1,1,0,0]
+// let dh1=diff(h1)
+// log(h1,dh1)
+
 
 function anim() {
-  
-    // if (n <= nMax) {
-
-    // }
-
-    // while (random_tumble()) { };
-    if (random_tumble()){
+    if(( n < nMax)){
+        if (add_grain(sourceColumn, n % nCols)){
+            n++
+        };
+        while (random_tumble()) { };
         requestAnimationFrame(anim);
     }
-    else if(( n < nMax)){
-        n++;
-        add_grain(sourceColumn, n % nCols);
-        requestAnimationFrame(anim);
-    }
-
 }
 
 anim()
