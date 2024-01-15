@@ -1,13 +1,60 @@
- #cw {
-   position: fixed;
-   z-index: -1;
-   cursor: crosshair;
-   image-rendering: pixelated;
- }
-
- body {
+body {
+  background-color: black;
   margin: 0;
-  overflow: hidden;
+  padding: 0;
+  /* overflow: hidden; */
+  /* display: flex; */
+  /* flex-direction: column; */
+}
+
+canvas {
+  position: fixed;
+  z-index: -1;
+  cursor: crosshair;
+  image-rendering: pixelated;
+  /* flex: 1; */
+  display: block;
+}
+
+.control-panel {
+  position: fixed;
+  /* top: 0;
+  left: 0;
+  width: 100%;
+  display: flex; */
+  background-color: rgba(0, 0, 0, 0.8);
+  /*Dark and transparent background*/
+  border-radius: 0px 0px 10px 10px;
+  /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); */
+
   display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 10px;
   flex-direction: column;
+  transition: transform 0.3s ease-in-out;
+}
+
+.control-panel.collapsed {
+  transform: translateY(-75%);
+}
+
+button {
+  /* padding: 10px 20px; */
+  /* font-size: 16px; */
+  cursor: pointer;
+  border: none;
+  /* border-radius: 5px; */
+  margin: 3px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  background-color: #333;
+  color: white;
+
+  padding: 10px;
+  font-size: 16px;
+}
+
+button:active {
+  background-color: #555;
+  /* Darker color when the button is pressed */
 }

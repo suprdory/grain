@@ -142,9 +142,99 @@ function random_tumble() {
     }
 
 }
+function setButtonActions(){
+    const hideButton = document.getElementById('hideButton');
+    hideButton.addEventListener('click', () => {
+        var panel = document.getElementById("panel");
+        panel.classList.toggle("collapsed");
+    
+        const hideButton = document.getElementById('hideButton');
+        hideButton.classList.toggle('hide');
+        const icon = hideButton.querySelector('i');
+        icon.textContent = hideButton.classList.contains('hide') ? 'expand_more' : 'expand_less';
+    })
+    function togglePanel() {
+    
+    }
+    
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    playPauseBtn.addEventListener('click', () => {
+        playPauseBtn.classList.toggle('paused');
+        const icon = playPauseBtn.querySelector('i');
+        icon.textContent = playPauseBtn.classList.contains('paused') ? 'pause' : 'play_arrow';
+        playPauseBtn.classList.contains('paused') ? play = false : play = true;
+        anim();
+        // log(play)
+    });
+    
+    // JavaScript for handling screenshot button (adjust as needed)
+    // const screenshotBtn = document.getElementById('screenshotBtn');
+    // screenshotBtn.addEventListener('click', () => {
+    //   // Add logic for taking a screenshot here
+    //   // alert('Screenshot taken!');
+    // });
+    const clearButton = document.getElementById('clearBtn');
+    clearButton.addEventListener('click',()=>{
+        clearScreen()
+    })
+    
+    const shuffleButton = document.getElementById('shuffleBtn');
+    shuffleButton.addEventListener('click',()=>{
+        shuffle()
+    })
+
+}
+function clearScreen(){
+    ctx.reset();
+    height = new Int16Array(X);
+    dhdx = diff(height);
+}
+
+function shuffle(){
+    X = getRandomElement(Xs)
+    let windowAR = window.innerWidth / window.innerHeight;
+    Y = Math.round(X / windowAR)
+    canvas.height = Y;
+    canvas.width = X;
+    canvas.style.width = window.innerWidth + "px";
+    height = new Int16Array(X);
+    dhdx = diff(height);
+
+    //background
+    // ctx.fillStyle = "navy";
+    // ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    sourceColumn = Math.round((Math.random() * X))
 
 
-let canvas = document.getElementById("cw");
+    let colorSpeed=getRandomElement(colorSpeeds)
+    nCols = X * colorSpeed;
+
+    let colourMapName = getRandomElement(colourMapNames)
+    colours = createColormap({ colormap: colourMapName, format: 'rgba', nshades: nCols, })
+    
+    pix = ctx.getImageData(0, 0, 1, 1);
+    pixEmpty = ctx.getImageData(0, 0, 1, 1);
+
+    height = new Int16Array(X);
+    dhdx = diff(height);
+    
+    let speedMult=getRandomElement(speedMults)
+    speed = X*X*speedMult/200; // number of grains added per iteration
+    n = 0
+    nMax = X * Y;
+
+    log('X',X,'colSpd',colorSpeed,'spdMult',speedMult,'palette',colourMapName)
+}
+
+let Xs=[50,100,200,400,600];
+let speedMults=[0.05,0.1,0.2,0.4]
+let colorSpeeds=[4,8,16,32,64]
+
+
+let n,nMax,sourceColumn,X,Y,nCols,colours,height,dhdx,pix,pixEmpty,speed
+
+let canvas = document.getElementById("myCanvas");
 let ctx = canvas.getContext("2d",
     {
         alpha: false,
@@ -154,37 +244,10 @@ let ctx = canvas.getContext("2d",
 // Add a click event listener to the canvas
 canvas.addEventListener('click', setSourceColumn);
 
-
-// log(colors)
-
-let X = 200;
-let windowAR = window.innerWidth / window.innerHeight;
-let Y = Math.round(X / windowAR)
-// log('AR',windowAR,'Y',Y)
-canvas.height = Y;
-canvas.width = X;
-canvas.style.width = window.innerWidth + "px";
-
-let sourceColumn = Math.round((Math.random() * X))
-// canvas.style.height = 400+"px";
-let nCols = X * 4
 let colourMapNames = getMapNames()
-let colourMapName = getRandomElement(colourMapNames)
-log(colourMapName)
-let colours = createColormap({ colormap: colourMapName, format: 'rgba', nshades: nCols, })
+let play = true
 
-let pix = ctx.getImageData(0, 0, 1, 1);
-let pixEmpty = ctx.getImageData(0, 0, 1, 1);
-pixEmpty.data[0] = 0
-pixEmpty.data[1] = 0
-pixEmpty.data[2] = 0
-pixEmpty.data[3] = 255
-
-let height = new Int16Array(X);
-let dhdx = diff(height);
-
-let n = 0
-let nMax = X * Y;
+shuffle();
 
 // let h0=[0,0,0,1,0,0]
 // let dh0=diff(h0)
@@ -197,33 +260,22 @@ let nMax = X * Y;
 // let dh1=diff(h1)
 // log(h1,dh1)
 
-
 function anim() {
     if ((n < nMax)) {
-        if (add_grain(sourceColumn, n % nCols)) {
-            n++
-        };
-        if (add_grain(sourceColumn, n % nCols)) {
-            n++
-        }; if (add_grain(sourceColumn, n % nCols)) {
-            n++
-        }; if (add_grain(sourceColumn, n % nCols)) {
-            n++
-        }; if (add_grain(sourceColumn, n % nCols)) {
-            n++
-        }; if (add_grain(sourceColumn, n % nCols)) {
-            n++
-        };
-
-
+        for (let i = 0; i < speed; i++) {
+            if (add_grain(sourceColumn, n % nCols)) {
+                n++
+            };
+        }
         while (random_tumble()) { };
-        requestAnimationFrame(anim);
+        if (play) {
+            requestAnimationFrame(anim);
+        }
     }
 }
 
 anim()
-
-
 trackPointerMovement();
+setButtonActions();
 
 
