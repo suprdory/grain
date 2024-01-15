@@ -188,6 +188,7 @@ function clearScreen(){
     ctx.reset();
     height = new Int16Array(X);
     dhdx = diff(height);
+    n=0;
 }
 
 function shuffle(){
