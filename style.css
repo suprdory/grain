@@ -1,55 +1,60 @@
- #cw {
-   position: fixed;
-   z-index: -1;
-   cursor: crosshair;
-   image-rendering: pixelated;
- }
-
- body {
+body {
+  background-color: black;
   margin: 0;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+  padding: 0;
+  /* overflow: hidden; */
+  /* display: flex; */
+  /* flex-direction: column; */
 }
 
 canvas {
-  flex: 1;
+  position: fixed;
+  z-index: -1;
+  cursor: crosshair;
+  image-rendering: pixelated;
+  /* flex: 1; */
   display: block;
 }
 
 .control-panel {
   position: fixed;
-  top: 0;
+  /* top: 0;
   left: 0;
   width: 100%;
+  display: flex; */
+  background-color: rgba(0, 0, 0, 0.8);
+  /*Dark and transparent background*/
+  border-radius: 0px 0px 10px 10px;
+  /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); */
+
   display: flex;
-  flex-wrap: wrap; /* Allow buttons to move onto a new row if not enough space */
-  justify-content: flex-end; /* Align buttons to the right initially */
-  background-color: rgba(0, 0, 0, 0.8); /* Dark and transparent background */
-  padding: 20px;
-  border-radius: 0 0 10px 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  justify-content: space-around;
+  align-items: center;
+  padding: 10px;
+  flex-direction: column;
+  transition: transform 0.3s ease-in-out;
+}
+
+.control-panel.collapsed {
+  transform: translateY(-75%);
 }
 
 button {
-  padding: 10px 20px;
-  font-size: 16px;
+  /* padding: 10px 20px; */
+  /* font-size: 16px; */
   cursor: pointer;
   border: none;
-  border-radius: 5px;
-  margin: 5px; /* Adjust the margin as needed */
+  /* border-radius: 5px; */
+  margin: 3px;
   transition: background-color 0.3s ease, color 0.3s ease;
-  background-color: #333; /* Dark button background */
-  color: white; /* Text color */
+  background-color: #333;
+  color: white;
+
+  padding: 10px;
+  font-size: 16px;
 }
 
 button:active {
-  background-color: #555; /* Darker color when the button is pressed */
-}
-
-
-@media (max-width: 600px) {
-  .control-panel {
-    justify-content: flex-start; /* Align buttons to the left on smaller screens */
-  }
+  background-color: #555;
+  /* Darker color when the button is pressed */
 }
