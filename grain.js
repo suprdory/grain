@@ -143,6 +143,59 @@ function random_tumble() {
 
 }
 function setButtonActions() {
+
+    const screenshotBtn = document.getElementById('screenshotBtn');
+    screenshotBtn.addEventListener('click', () => {
+        // var image = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");  // here is the most important part because if you dont replace you will get a DOM 18 exception.
+        // window.location.href = image; // it will save locally
+
+        var link = document.createElement('a');
+        let datetimeStr =new Date().toJSON()
+
+        link.setAttribute('download','grain_ '+ datetimeStr+'.png');
+        link.setAttribute('href', canvas.toDataURL("image/png").replace("image/png", "image/octet-stream"));
+        link.click();
+    });
+
+
+
+
+    //Full screen toggle button functions
+    /* Get the documentElement (<html>) to display the page in fullscreen */
+    var elem = document.documentElement;
+
+    /* View in fullscreen */
+    function openFullscreen() {
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen();
+        } else if (elem.webkitRequestFullscreen) { /* Safari */
+            elem.webkitRequestFullscreen();
+        } else if (elem.msRequestFullscreen) { /* IE11 */
+            elem.msRequestFullscreen();
+        }
+    }
+
+    /* Close fullscreen */
+    function closeFullscreen() {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) { /* Safari */
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) { /* IE11 */
+            document.msExitFullscreen();
+        }
+    }
+    const fullScreenBtn = document.getElementById('fullScreenBtn');
+    fullScreenBtn.addEventListener('click', () => {
+        playPauseBtn.classList.toggle('fullScreen');
+        const icon = fullScreenBtn.querySelector('i');
+        icon.textContent = playPauseBtn.classList.contains('fullScreen') ? 'close_fullscreen' : 'fullscreen';
+        playPauseBtn.classList.contains('fullScreen') ? openFullscreen() : closeFullscreen();
+        // anim();
+        // log(play)
+    });
+
+
     // const hideButton = document.getElementById('hideButton');
     // hideButton.addEventListener('click', () => {
     //     var panel = document.getElementById("panel");
@@ -246,7 +299,7 @@ canvas.addEventListener('click', setSourceColumn);
 
 let colourMapNames = getMapNames()
 let play = true
-let coln=0;
+let coln = 0;
 
 shuffle();
 
@@ -277,6 +330,9 @@ function anim() {
     }
 
 }
+
+
+
 
 anim()
 trackPointerMovement();
