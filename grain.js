@@ -142,21 +142,20 @@ function random_tumble() {
     }
 
 }
-function setButtonActions(){
-    const hideButton = document.getElementById('hideButton');
-    hideButton.addEventListener('click', () => {
-        var panel = document.getElementById("panel");
-        panel.classList.toggle("collapsed");
-    
-        const hideButton = document.getElementById('hideButton');
-        hideButton.classList.toggle('hide');
-        const icon = hideButton.querySelector('i');
-        icon.textContent = hideButton.classList.contains('hide') ? 'expand_more' : 'expand_less';
-    })
-    function togglePanel() {
-    
-    }
-    
+function setButtonActions() {
+    // const hideButton = document.getElementById('hideButton');
+    // hideButton.addEventListener('click', () => {
+    //     var panel = document.getElementById("panel");
+    //     panel.classList.toggle("collapsed");
+
+    //     const hideButton = document.getElementById('hideButton');
+    //     hideButton.classList.toggle('hide');
+    //     const icon = hideButton.querySelector('i');
+    //     icon.textContent = hideButton.classList.contains('hide') ? 'expand_more' : 'expand_less';
+    // })
+    // function togglePanel() {
+    // }
+
     const playPauseBtn = document.getElementById('playPauseBtn');
     playPauseBtn.addEventListener('click', () => {
         playPauseBtn.classList.toggle('paused');
@@ -166,7 +165,7 @@ function setButtonActions(){
         anim();
         // log(play)
     });
-    
+
     // JavaScript for handling screenshot button (adjust as needed)
     // const screenshotBtn = document.getElementById('screenshotBtn');
     // screenshotBtn.addEventListener('click', () => {
@@ -174,24 +173,24 @@ function setButtonActions(){
     //   // alert('Screenshot taken!');
     // });
     const clearButton = document.getElementById('clearBtn');
-    clearButton.addEventListener('click',()=>{
+    clearButton.addEventListener('click', () => {
         clearScreen()
     })
-    
+
     const shuffleButton = document.getElementById('shuffleBtn');
-    shuffleButton.addEventListener('click',()=>{
+    shuffleButton.addEventListener('click', () => {
         shuffle()
     })
 
 }
-function clearScreen(){
+function clearScreen() {
     ctx.reset();
     height = new Int16Array(X);
     dhdx = diff(height);
-    n=0;
+    n = 0;
 }
 
-function shuffle(){
+function shuffle() {
     X = getRandomElement(Xs)
     let windowAR = window.innerWidth / window.innerHeight;
     Y = Math.round(X / windowAR)
@@ -204,36 +203,36 @@ function shuffle(){
     //background
     // ctx.fillStyle = "navy";
     // ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
+
     sourceColumn = Math.round((Math.random() * X))
 
 
-    let colorSpeed=getRandomElement(colorSpeeds)
+    let colorSpeed = getRandomElement(colorSpeeds)
     nCols = X * colorSpeed;
 
     let colourMapName = getRandomElement(colourMapNames)
     colours = createColormap({ colormap: colourMapName, format: 'rgba', nshades: nCols, })
-    
+
     pix = ctx.getImageData(0, 0, 1, 1);
     pixEmpty = ctx.getImageData(0, 0, 1, 1);
 
     height = new Int16Array(X);
     dhdx = diff(height);
-    
-    let speedMult=getRandomElement(speedMults)
-    speed = X*X*speedMult/200; // number of grains added per iteration
+
+    let speedMult = getRandomElement(speedMults)
+    speed = X * X * speedMult / 200; // number of grains added per iteration
     n = 0
     nMax = X * Y;
 
-    log('X',X,'colSpd',colorSpeed,'spdMult',speedMult,'palette',colourMapName)
+    log('X', X, 'colSpd', colorSpeed, 'spdMult', speedMult, 'palette', colourMapName)
 }
 
-let Xs=[50,75,100,150,200,400,600];
-let speedMults=[0.05,0.1,0.2]
-let colorSpeeds=[4,8,16,32,64]
+let Xs = [50, 75, 100, 150, 200, 400, 600];
+let speedMults = [0.05, 0.1, 0.2]
+let colorSpeeds = [4, 8, 16, 32, 64]
 
 
-let n,nMax,sourceColumn,X,Y,nCols,colours,height,dhdx,pix,pixEmpty,speed
+let n, nMax, sourceColumn, X, Y, nCols, colours, height, dhdx, pix, pixEmpty, speed
 
 let canvas = document.getElementById("myCanvas");
 let ctx = canvas.getContext("2d",
@@ -247,6 +246,7 @@ canvas.addEventListener('click', setSourceColumn);
 
 let colourMapNames = getMapNames()
 let play = true
+let coln=0;
 
 shuffle();
 
@@ -264,16 +264,18 @@ shuffle();
 function anim() {
     if ((n < nMax)) {
         for (let i = 0; i < speed; i++) {
-            if (add_grain(sourceColumn, n % nCols)) {
-                n++
+            if (add_grain(sourceColumn, coln % nCols)) {
                 while (random_tumble()) { };
+                n++;
+                coln++;
             };
         }
-        
-        if (play) {
-            requestAnimationFrame(anim);
-        }
     }
+
+    if (play & (n < nMax)) {
+        requestAnimationFrame(anim);
+    }
+
 }
 
 anim()

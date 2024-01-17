@@ -2,9 +2,6 @@ body {
   background-color: black;
   margin: 0;
   padding: 0;
-  /* overflow: hidden; */
-  /* display: flex; */
-  /* flex-direction: column; */
 }
 
 canvas {
@@ -12,26 +9,25 @@ canvas {
   z-index: -1;
   cursor: crosshair;
   image-rendering: pixelated;
-  /* flex: 1; */
   display: block;
+  height: calc(100% - 64px);
 }
 
 .control-panel {
   position: fixed;
-  /* top: 0;
-  left: 0;
+  bottom:0;
   width: 100%;
-  display: flex; */
-  background-color: rgba(0, 0, 0, 0.8);
-  /*Dark and transparent background*/
-  border-radius: 0px 0px 10px 10px;
-  /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); */
+
+  /* background-color: rgba(148, 42, 42, 0.8); */
+  /* border-radius: 0px 0px 10px 10px; */
 
   display: flex;
-  justify-content: space-around;
-  align-items: center;
-  padding: 10px;
-  flex-direction: column;
+  /* justify-content: space-around; */
+  justify-content: center;
+  /* align-items: center; */
+  padding: 5px;
+  /* flex-direction: column; */
+  flex-direction: row;
   transition: transform 0.3s ease-in-out;
 }
 
