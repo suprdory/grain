@@ -146,18 +146,26 @@ function setButtonActions() {
 
     const screenshotBtn = document.getElementById('screenshotBtn');
     screenshotBtn.addEventListener('click', () => {
-        // var image = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");  // here is the most important part because if you dont replace you will get a DOM 18 exception.
-        // window.location.href = image; // it will save locally
-
-        var link = document.createElement('a');
-        let datetimeStr =new Date().toJSON()
-
-        link.setAttribute('download','grain_ '+ datetimeStr+'.png');
-        link.setAttribute('href', canvas.toDataURL("image/png").replace("image/png", "image/octet-stream"));
-        link.click();
+        saveCanvasImage();
     });
 
+    function saveCanvasImage() {
+        //need to draw new canvas at screen resolution or resulting image can be too small to view on e.g. phones.
+        let canvasScr = document.createElement('canvas')
+        canvasScr.width = window.innerWidth;
+        canvasScr.height = window.innerHeight;
+        let ctxScr = canvasScr.getContext('2d');
+        ctxScr.imageSmoothingEnabled = false;
+        ctxScr.drawImage(canvas, 0, 0, window.innerWidth, window.innerHeight)
 
+        var link = document.createElement('a');
+        let datetimeStr = new Date().toJSON()
+        var dataURL = canvasScr.toDataURL();
+        link.href = dataURL;
+        link.download = 'grain_ ' + datetimeStr + '.png';
+        link.click();
+
+    }
 
 
     //Full screen toggle button functions
