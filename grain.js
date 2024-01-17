@@ -228,8 +228,8 @@ function shuffle(){
     log('X',X,'colSpd',colorSpeed,'spdMult',speedMult,'palette',colourMapName)
 }
 
-let Xs=[50,100,200,400,600];
-let speedMults=[0.05,0.1,0.2,0.4]
+let Xs=[50,75,100,150,200,400,600];
+let speedMults=[0.05,0.1,0.2]
 let colorSpeeds=[4,8,16,32,64]
 
 
@@ -266,9 +266,10 @@ function anim() {
         for (let i = 0; i < speed; i++) {
             if (add_grain(sourceColumn, n % nCols)) {
                 n++
+                while (random_tumble()) { };
             };
         }
-        while (random_tumble()) { };
+        
         if (play) {
             requestAnimationFrame(anim);
         }
