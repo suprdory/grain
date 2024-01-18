@@ -4,13 +4,23 @@ body {
   padding: 0;
 }
 
-canvas {
+#canvasBot {
+  top: calc(0.5 * (100% - 64px));
   position: fixed;
   z-index: -1;
   cursor: crosshair;
   image-rendering: pixelated;
   display: block;
-  height: calc(100% - 64px);
+  height: calc(0.5 * (100% - 64px));
+}
+
+#canvasTop {
+  position: fixed;
+  z-index: -1;
+  cursor: crosshair;
+  image-rendering: pixelated;
+  display: block;
+  height: calc(0.5 * (100% - 64px));
 }
 
 .control-panel {
