@@ -234,19 +234,19 @@ function random_hole_diff(pane) {
             //left edge
             // log('left edge')
             left_thresh = 0
-            right_thresh = 0.3
+            right_thresh = 0.2
 
         }
         else if (x == (pane.X - 1)) {
             //right edge
             // log('right edge')
-            left_thresh = 0.7
+            left_thresh = 0.8
             right_thresh = 1.0
         }
         else {
             // log('no edge')
-            left_thresh = 0.4
-            right_thresh = 0.6
+            left_thresh = 0.45
+            right_thresh = 0.55
             //not edge case, equal chance of up or side propagation
         }
 
@@ -533,8 +533,6 @@ function anim() {
         requestAnimationFrame(anim);
     }
 }
-
-
 function invertY(pane) {
     let column;
     for (let x = 0; x < pane.X; x++) {
