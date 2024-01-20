@@ -84,11 +84,12 @@ function getRandomElement(arr) {
 }
 function add_grain(pane, x, colour) {
     // log(x, height[x])
-    if (pane.height[x] < Y) {// column not full
+    if (pane.height[x] < pane.Y) {// column not full
+        // log(pix.data[0], colour)
         pix.data[0] = colour[0];
         pix.data[1] = colour[1];
         pix.data[2] = colour[2];
-        pane.ctx.putImageData(pix, x, Y - pane.height[x] - 1);
+        pane.ctx.putImageData(pix, x, pane.Y - pane.height[x] - 1);
         pane.height[x]++;
         pane.dhdx[x]--;
         pane.dhdx[x - 1]++;
@@ -100,37 +101,26 @@ function add_grain(pane, x, colour) {
     }
     // dhdx = diff(height);
 }
-// function add_grain_pix(pane, x, pix) {
-//     if (pane.height[x] < Y) {// column not full
-//         pane.ctx.putImageData(pix, x, Y - pane.height[x] - 1);
-//         pane.height[x]++;
-//         pane.dhdx[x]--;
-//         pane.dhdx[x - 1]++;
-//         while (random_tumble(pane)) { };
-//         return true;
-//     }
-//     else {
-//         return false;
-//     }
-//     // dhdx = diff(height);
-// }
 function removeGrain(pane, x, pix) {
     // log(pane.height)
     if (pane.height[x] - pane.base[x] > 0) {
 
-        let pixOut = pane.ctx.getImageData(x, Y - 1, 1, 1).data
+        let pixOut = pane.ctx.getImageData(x, pane.Y - 1, 1, 1).data
         pix.data[0] = pixOut[0]
         pix.data[1] = pixOut[1]
         pix.data[2] = pixOut[2]
-        pane.ctx.putImageData(pane.pix0, x, Y - 1)
+        pane.ctx.putImageData(pane.pix0, x, pane.Y - 1)
         if (pane.height[x] > 1) {
             pane.base[x]++; // increment base height, if grains above
+            pane.holes.push([x, pane.Y - 1])
         }
         else {
             pane.height[x] = 0;
+            pane.dhdx = diff(pane.height)
         }
-        while (random_settle(pane)) { };
-        while (random_tumble(pane)) { };
+        while (random_hole_diff(paneT)) { }
+        while (random_tumble(paneT)) { }
+
         return true
     }
     else {
@@ -154,7 +144,7 @@ function random_tumble(pane) {
         // x=0
         // log("x", x)
         if (pane.dhdx[x] < 0) {
-            movePixel(pane, x, Y - pane.height[x], x + 1, Y - pane.height[x + 1] - 1)
+            movePixel(pane, x, pane.Y - pane.height[x], x + 1, pane.Y - pane.height[x + 1] - 1)
             pane.height[x]--;
             pane.height[x + 1]++;
             pane.dhdx[x - 1]--;
@@ -163,7 +153,7 @@ function random_tumble(pane) {
 
         }
         else {
-            movePixel(pane, x + 1, Y - pane.height[x + 1], x, Y - pane.height[x] - 1)
+            movePixel(pane, x + 1, pane.Y - pane.height[x + 1], x, pane.Y - pane.height[x] - 1)
             pane.height[x + 1]--;
             pane.height[x]++;
 
@@ -228,6 +218,100 @@ function random_settle(pane) {
         return false;
     }
 }
+function random_hole_diff(pane) {
+    // assume max 1 hole, so function should always be called after grain removal and 
+    // called until it returns false, i.e. no hole remaining.
+
+    // diffuse holes upwards and sidewards until they get to the top and dissappear.  
+    // requires array containing hole coors, could be empty
+    // log('n', pane.holes.length, pane.holes[0])
+    if (pane.holes.length > 0) {
+        let x = pane.holes[0][0]
+        let y = pane.holes[0][1]
+        // log(x, y)
+        let left_thresh, right_thresh
+        if (x == 0) {
+            //left edge
+            // log('left edge')
+            left_thresh = 0
+            right_thresh = 0.3
+
+        }
+        else if (x == (pane.X - 1)) {
+            //right edge
+            // log('right edge')
+            left_thresh = 0.7
+            right_thresh = 1.0
+        }
+        else {
+            // log('no edge')
+            left_thresh = 0.4
+            right_thresh = 0.6
+            //not edge case, equal chance of up or side propagation
+        }
+
+        const randomNumber = Math.random();
+        if (randomNumber < left_thresh) {
+            // console.log("Left");
+            movePixel(pane, x - 1, y, x, y)
+            if (pane.Y - (y) < pane.height[x - 1]) {
+                pane.holes[0] = [x - 1, y]
+            }
+            else {
+                pane.holes = []
+                pane.height[x - 1]--
+                pane.dhdx[x - 2]--
+                pane.dhdx[x - 1]++
+            }
+            if (y == (pane.Y - 1)) {
+                //affects base height
+                pane.base[x - 1] = 1
+                pane.base[x] = 0
+            }
+        }
+        else if (randomNumber < right_thresh) {
+            // console.log("Up");
+            movePixel(pane, x, y - 1, x, y)
+            if (pane.Y - (y - 1) < pane.height[x]) {
+                pane.holes[0] = [x, y - 1]
+            }
+            else {
+                pane.holes = []
+                pane.height[x]--
+                pane.dhdx[x - 1]--
+                pane.dhdx[x]++
+            }
+            if (y == (pane.Y - 1)) {
+                //affects base height
+                pane.base[x] = 0
+            }
+        }
+        else {
+            // console.log("Right");
+            movePixel(pane, x + 1, y, x, y)
+            if (pane.Y - (y) < pane.height[x + 1]) {
+                pane.holes[0] = [x + 1, y]
+            }
+            else {
+                pane.holes = []
+                pane.height[x + 1]--
+                pane.dhdx[x]--
+                pane.dhdx[x + 1]++
+            }
+            if (y == (pane.Y - 1)) {
+                //affects base height
+                pane.base[x + 1] = 1
+                pane.base[x] = 0
+            }
+        }
+        // log('new pos', pane.holes[0])
+        return true;
+    }
+    else {
+        //no holes
+        return false
+    }
+}
 function setButtonActions() {
 
     const screenshotBtn = document.getElementById('screenshotBtn');
@@ -242,8 +326,8 @@ function setButtonActions() {
         canvasScr.height = window.innerHeight;
         let ctxScr = canvasScr.getContext('2d');
         ctxScr.imageSmoothingEnabled = false;
-        ctxScr.drawImage(canvas, 0, 0, window.innerWidth, window.innerHeight)
-
+        ctxScr.drawImage(canvasTop, 0, 0, window.innerWidth, window.innerHeight*topFrac)
+        ctxScr.drawImage(canvasBot, 0, window.innerHeight*topFrac, window.innerWidth, window.innerHeight*(1-topFrac))
         var link = document.createElement('a');
         let datetimeStr = new Date().toJSON()
         var dataURL = canvasScr.toDataURL();
@@ -326,7 +410,8 @@ function setButtonActions() {
 
     const shuffleButton = document.getElementById('shuffleBtn');
     shuffleButton.addEventListener('click', () => {
-        shuffle()
+        // shuffle()
+        initTiers()
     })
 
 }
@@ -355,10 +440,10 @@ function shuffle() {
     log('X', X, 'colSpd', colorSpeed, 'spdMult', speedMult, 'palette', colourMapName)
     return { X: X, colorSpeed: colorSpeed, speed: speed, colours: colours }
 }
-function initPane(canvas, X, col) {
+function initPane(canvas, X, yFrac, col) {
 
     let windowAR = window.innerWidth / window.innerHeight;
-    Y = Math.round(0.5 * X / windowAR)
+    let Y = Math.round(yFrac * X / windowAR)
     canvas.height = Y;
     canvas.width = X;
     canvas.style.width = window.innerWidth + "px";
@@ -375,85 +460,64 @@ function initPane(canvas, X, col) {
     let pane = {}
     // pane.parms= { height: height, dhdx: dhdx, base: base, emptyPix:emptyPix }
 
+    pane.holes = [];
     pane.height = height;
     pane.dhdx = dhdx;
     pane.base = base;
     pane.pix0 = pix0;
-    pane.ctx = ctx
+    pane.ctx = ctx;
+    pane.X = X;
+    pane.Y = Y;
     return pane
 }
-function fillPane(pane, nRows) {
+function fillPane(pane, nRows, colours, colDir, coln) {
     for (let y = 0; y < nRows; y++) {
-        for (let x = 0; x < X; x++) {
-            add_grain(pane, x, colours[coln % nCols])
-            coln++
+        for (let x = 0; x < pane.X; x++) {
+            // ((coln % nCols) + nCols) % nCols
+            coln += colDir
+            add_grain(pane, x, colours[((coln % nCols) + nCols) % nCols])
+            
         }
     }
 
 }
+function initTiers() {
+    let Xs = [50, 75, 100, 150, 200, 400];
+    let X = getRandomElement(Xs)
 
-// let Xs = [50, 75, 100, 150, 200, 400, 600];
-// let speedMults = [0.05, 0.1, 0.2]
-// let colorSpeeds = [4, 8, 16, 32, 64]
-// let colourMapNames = getMapNames()
-
-let Xs = [50];
-let speedMults = [0.05]
-let colorSpeeds = [128]
-let colourMapNames = ['viridis']
-
-let n, nMax, sourceColumn, X, Y, nCols, colours, pix, pixEmpty, speed
-
-// get canvas, contexts, and pixel, emptyPixel objs
-let canvasTop = document.getElementById("canvasTop");
-let ctxTop = canvasTop.getContext("2d",
-    {
-        alpha: false,
-        willReadFrequently: true,
-        imageSmoothingEnabled: false
-    });
-
-let canvasBot = document.getElementById("canvasBot");
-let ctxBot = canvasBot.getContext("2d",
-    {
-        alpha: false,
-        willReadFrequently: true,
-        imageSmoothingEnabled: false
-    });
-pix = ctxBot.getImageData(0, 0, 1, 1); // temp data used for moving pixels arround and beteen pane ctxs
-// pixEmpty = ctxBot.getImageData(0, 0, 1, 1);
-// //background// 
-// ctxBot.fillStyle = "navy";
-// ctxBot.fillRect(0, 0, canvasBot.width, canvasBot.height);
+    topFrac = 0.45
+    paneT = initPane(canvasTop, X, topFrac, 'black')
+    paneB = initPane(canvasBot, X, 1 - topFrac, 'black')
+    canvasTop.style.setProperty('height', 'calc(' + topFrac + ' * (100% - 64px))');
+    canvasBot.style.setProperty('height', 'calc(' + (1.0 - topFrac) + ' * (100% - 64px))');
+    canvasBot.style.setProperty('top', 'calc(' + topFrac + ' * (100% - 64px))');
 
 
-// Add a click event listener to the canvas
-canvasBot.addEventListener('click', setSourceColumn);
 
-let play = true
-let coln = 0;
-X = 100
-let paneB = initPane(canvasBot, X, 'black')
-let paneT = initPane(canvasTop, X, 'black')
-// log(paneT)
+    let fillFrac = 1
+    let fillRows = Math.round(paneT.Y * fillFrac)
+    // log('fillRows',fillRows,'paneT.Y',paneT.Y)
+    let colFrac = getRandomElement([1, 1, 1, 1, 1.5, 2, 3, 0.8, 0.5])
+    let colDir = getRandomElement([-1, 1])
+    coln = 0
+    nCols = X * (fillRows) * colFrac
 
-shuffle();
+    // let colorSpeeds = [4, 8, 16, 32, 64]
+    colours = createColormap({ colormap: getRandomElement(getMapNames()), format: 'rgba', nshades: nCols, })
+    fillPane(paneT, fillRows, colours, colDir, coln);
+    sourceColumn = Math.round((Math.random() * X))
 
-fillPane(paneT, 50);
+    n = 0
+    nMax = X * fillRows;
 
-n = 0
-nMax = X * Y;
-// nMax = 200
-speed = 5
-// sourceColumn = 2
-
-
+    // let speedMults = [0.05, 0.1, 0.2]
+    speed = 50 / X
+}
 function anim() {
     if ((n < nMax)) {
         for (let i = 0; i < speed; i++) {
-            // log('n',n)
             if (removeGrain(paneT, sourceColumn, pix)) {
-                // log('pix',pix)
+                // log('grain removed')
                 add_grain(paneB, sourceColumn, pix.data)
                 n++
             }
@@ -465,6 +529,32 @@ function anim() {
     }
 }
 
+let n, nMax, sourceColumn, pix, speed, paneT, paneB, coln, nCols, colours,topFrac
+let play = true
+// get canvas, contexts, and pixel, objs
+let canvasTop = document.getElementById("canvasTop");
+let ctxTop = canvasTop.getContext("2d",
+    {
+        alpha: false,
+        willReadFrequently: true,
+        imageSmoothingEnabled: false
+    });
+let canvasBot = document.getElementById("canvasBot");
+let ctxBot = canvasBot.getContext("2d",
+    {
+        alpha: false,
+        willReadFrequently: true,
+        imageSmoothingEnabled: false
+    });
+pix = ctxBot.getImageData(0, 0, 1, 1); // temp data used for moving pixels arround and beteen pane ctxs
+
+canvasBot.addEventListener('click', setSourceColumn);
+canvasTop.addEventListener('click', setSourceColumn);
+
+
+
+
+initTiers()
 anim()
 trackPointerMovement();
 setButtonActions();
