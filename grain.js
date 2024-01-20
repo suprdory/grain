@@ -482,6 +482,9 @@ function fillPane(pane, nRows, colours, colDir, coln) {
 
 }
 function initTiers() {
+    if (flipped){
+        flip()
+    }
     let Xs = [50, 75, 100, 150, 200];
     let X = getRandomElement(Xs)
     // X = 50
@@ -582,7 +585,7 @@ function flip() {
 
 
 let n, nMax, sourceColumn, pix, speed, paneT, paneB, coln, nCols, colours, topFrac
-
+let flipped = false;
 // get canvas, contexts, and pixel, objs
 let canvasTop = document.getElementById("canvasTop");
 let ctxTop = canvasTop.getContext("2d",
@@ -609,7 +612,7 @@ canvasTop.addEventListener('click', setSourceColumn);
 initTiers()
 trackPointerMovement();
 setButtonActions();
-let flipped = false;
+
 let play = true
 anim()
 
