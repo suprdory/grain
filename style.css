@@ -38,7 +38,7 @@ body {
   padding: 5px;
   /* flex-direction: column; */
   flex-direction: row;
-  transition: transform 0.3s ease-in-out;
+  /* transition: transform 0.3s ease-in-out; */
 }
 
 .control-panel.collapsed {
@@ -60,10 +60,13 @@ button {
   font-size: 16px;
 }
 
-button:active {
-  background-color: #555;
-  /* Darker color when the button is pressed */
+#flipBtn{
+  display: none;
 }
+/* button:active {
+  background-color: #7a2626;
+  /* Darker color when the button is pressed */
+/* } */ */
 
 .prevent-select {
   -webkit-user-select: none; /* Safari */

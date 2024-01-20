@@ -4,14 +4,12 @@ Array.prototype.random = function () {
 let log = console.log;
 import { createColormap, getMapNames } from "./colormaps.js";
 function getMouseRowCol(event) {
-
+    // log(event)
     // Get the mouse coordinates relative to the canvas
     // in cavans pixels, not css pixels
     var x = Math.floor(canvasBot.width / canvasBot.getBoundingClientRect().width * (event.clientX - canvasBot.getBoundingClientRect().left));
     var y = Math.floor(canvasBot.width / canvasBot.getBoundingClientRect().width * (event.clientY - canvasBot.getBoundingClientRect().top));
     return { 'column': x, 'row': y }
-    // Output the coordinates
-    // console.log('Mouse Click Coordinates: X=' + x + ', Y=' + y);
 
 }
 function setSourceColumn(event) {
@@ -398,15 +396,22 @@ function setButtonActions() {
     });
 
 
-    // const clearButton = document.getElementById('clearBtn');
-    // clearButton.addEventListener('click', () => {
-    //     clearScreen()
-    // })
+    const clearButton = document.getElementById('clearBtn');
+    clearButton.addEventListener('click', () => {
+        clearScreen()
+    })
 
     const shuffleButton = document.getElementById('shuffleBtn');
     shuffleButton.addEventListener('click', () => {
-        // shuffle()
-        initTiers()
+        shuffle()
+        if (split) {
+            paneBinUse = false;
+            initTiers()
+        }
+        else {
+            initSingle()
+        }
+
     })
 
     const flipButton = document.getElementById('flipBtn');
@@ -414,124 +419,58 @@ function setButtonActions() {
         flip();
     })
 
+    const splitButton = document.getElementById('splitBtn');
+    splitButton.addEventListener('click', () => {
+        splitButton.classList.toggle('split');
+        const icon = splitButton.querySelector('i');
+
+        if (splitButton.classList.contains('split')) {
+            icon.textContent = 'crop_portrait'
+            split = true
+            flipButton.style.display = 'block';
+            clearButton.style.display = 'none';
+            splitMode();
+        }
+        else {
+            icon.textContent = 'splitscreen'
+            split = false
+            flipButton.style.display = 'none';
+            clearButton.style.display = 'block';
+            singleMode();
+        }
+
+    })
+
 }
 function clearScreen() {
-    clearPane(ctxBot, parmsBot);
-    clearPane(ctxTop, parmsTop);
+    clearPane(paneB);
+    // clearPane(paneT);
 }
-function clearPane(ctx, parms) {
-    ctx.reset();
-    parms.height = new Int16Array(X);
-    parms.dhdx = diff(parms.height);
+function clearPane(pane) {
+    pane.ctx.reset();
+    pane.height = new Int16Array(X);
+    pane.dhdx = diff(pane.height);
+    pane.base = new Int16Array(X);
     n = 0;
 }
 function shuffle() {
-    sourceColumn = Math.round((Math.random() * X))
-
-    let colorSpeed = getRandomElement(colorSpeeds)
-    nCols = X * colorSpeed;
-
-    let colourMapName = getRandomElement(colourMapNames)
-    colours = createColormap({ colormap: colourMapName, format: 'rgba', nshades: nCols, })
-
-    let speedMult = getRandomElement(speedMults)
-    speed = X * X * speedMult / 200; // number of grains added per iteration
-
-    log('X', X, 'colSpd', colorSpeed, 'spdMult', speedMult, 'palette', colourMapName)
-    return { X: X, colorSpeed: colorSpeed, speed: speed, colours: colours }
-}
-function initPane(canvas, X, yFrac, col) {
-
-    let windowAR = window.innerWidth / window.innerHeight;
-    let Y = Math.round(yFrac * X / windowAR)
-    canvas.height = Y;
-    canvas.width = X;
-    canvas.style.width = window.innerWidth + "px";
-    let height = new Int16Array(X); // top of column
-    let base = new Int16Array(X); // start of column
-    let dhdx = diff(height);
-
-    //background// 
-    let ctx = canvas.getContext('2d')
-    ctx.fillStyle = col;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    let pix0 = ctx.getImageData(0, 0, 1, 1);
-    // canvas.pix0=pix0;
-    let pane = {}
-    // pane.parms= { height: height, dhdx: dhdx, base: base, emptyPix:emptyPix }
-
-    pane.holes = [];
-    pane.height = height;
-    pane.dhdx = dhdx;
-    pane.base = base;
-    pane.pix0 = pix0;
-    pane.ctx = ctx;
-    pane.X = X;
-    pane.Y = Y;
-    return pane
-}
-function fillPane(pane, nRows, colours, colDir, coln) {
-    for (let y = 0; y < nRows; y++) {
-        for (let x = 0; x < pane.X; x++) {
-            // ((coln % nCols) + nCols) % nCols
-            coln += colDir
-            add_grain(pane, x, colours[((coln % nCols) + nCols) % nCols])
-
-        }
-    }
-
-}
-function initTiers() {
-    if (flipped){
-        flip()
-    }
     let Xs = [50, 75, 100, 150, 200];
-    let X = getRandomElement(Xs)
-    // X = 50
-
-    topFrac = 0.5 // flipping requires 50/50 atm
-    paneT = initPane(canvasTop, X, topFrac, 'black')
-    paneB = initPane(canvasBot, X, 1 - topFrac, 'black')
-    canvasTop.style.setProperty('height', 'calc(' + topFrac + ' * (100% - 64px))');
-    canvasBot.style.setProperty('height', 'calc(' + (1.0 - topFrac) + ' * (100% - 64px))');
-    canvasBot.style.setProperty('top', 'calc(' + topFrac + ' * (100% - 64px))');
-
-
-
-    let fillFrac = 0.8
-    let fillRows = Math.round(paneT.Y * fillFrac)
-    // log('fillRows',fillRows,'paneT.Y',paneT.Y)
-    let colFrac = getRandomElement([1, 1, 1, 1, 1, 0.5, 0.75])
-    let colDir = getRandomElement([-1, 1])
-    coln = 0
-    nCols = X * (fillRows) * colFrac + 1
-
-    // let colorSpeeds = [4, 8, 16, 32, 64]
-    colours = createColormap({ colormap: getRandomElement(getMapNames()), format: 'rgba', nshades: nCols, })
-    fillPane(paneT, fillRows, colours, colDir, coln);
+    // X = getRandomElement(Xs)
+    X = 50
     sourceColumn = Math.round((Math.random() * X))
+    let colourSpeeds = [4, 8, 16, 32, 64]
+    colourSpeed = getRandomElement(colourSpeeds)
+    colourMapName = getRandomElement(getMapNames())
 
-    n = 0
-    nMax = X * fillRows;
+    // let speedMult = getRandomElement(speedMults)
+    // speed = X * X * speedMult / 200; // number of grains added per iteration
+    // log('X', X, 'colSpd', colorSpeed, 'spdMult', speedMult, 'palette', colourMapName)
+    colDir = getRandomElement([-1, 1]);
 
-    // let speedMults = [0.05, 0.1, 0.2]
+    speed = X / 50;
 
-    speed = X / 50
-}
-function anim() {
-
-    for (let i = 0; i < speed; i++) {
-        if (removeGrain(paneT, sourceColumn, pix)) {
-            // log('grain removed')
-            add_grain(paneB, sourceColumn, pix.data)
-            n++
-        }
-
-    }
-
-    if (play) {
-        requestAnimationFrame(anim);
-    }
+    log('X', X, 'palette', colourMapName)
+    // return { X: X, colorSpeed: colorSpeed, speed: speed, colours: colours }
 }
 function invertY(pane) {
     let column;
@@ -575,15 +514,142 @@ function flip() {
 
 
 }
+function initPane(canvas, X, yFrac, col) {
+    let windowAR = window.innerWidth / window.innerHeight;
+    let Y = Math.round(yFrac * X / windowAR)
+    canvas.height = Y;
+    canvas.width = X;
+    canvas.style.width = window.innerWidth + "px";
+    let height = new Int16Array(X); // top of column
+    let base = new Int16Array(X); // start of column
+    let dhdx = diff(height);
+    // log('canvas width', canvas.width)
+
+    //background// 
+    let ctx = canvas.getContext('2d')
+    ctx.fillStyle = col;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    let pix0 = ctx.getImageData(0, 0, 1, 1);
+
+    let pane = {}
+    pane.holes = [];
+    pane.height = height;
+    pane.dhdx = dhdx;
+    pane.base = base;
+    pane.pix0 = pix0;
+    pane.ctx = ctx;
+    pane.X = X;
+    pane.Y = Y;
+    return pane
+}
+function fillPane(pane, nRows, colours, colDir, coln) {
+    for (let y = 0; y < nRows; y++) {
+        for (let x = 0; x < pane.X; x++) {
+            // ((coln % nCols) + nCols) % nCols
+            coln += colDir
+            add_grain(pane, x, colours[((coln % nCols) + nCols) % nCols])
+
+        }
+    }
+
+}
+function initTiers() {
+
+    if (flipped) {
+        flip()
+    }
+
+    topFrac = 0.5 // flipping requires 50/50 atm
+    paneT = initPane(canvasTop, X, topFrac, 'black')
+    if (paneBinUse) {
+        //create new bottom pane from old bottom pane
+    }
+    else {
+        paneB = initPane(canvasBot, X, 1 - topFrac, 'black')
+    }
+    paneB = initPane(canvasBot, X, 1 - topFrac, 'black')
+    canvasTop.style.setProperty('height', 'calc(' + topFrac + ' * (100% - 64px))');
+    canvasBot.style.setProperty('height', 'calc(' + (1.0 - topFrac) + ' * (100% - 64px))');
+    canvasBot.style.setProperty('top', 'calc(' + topFrac + ' * (100% - 64px))');
+
+    if (!paneBinUse) {
+        let fillFrac = 0.8
+        let fillRows = Math.round(paneT.Y * fillFrac)
+        // log('fillRows',fillRows,'paneT.Y',paneT.Y)
+        let colFrac = getRandomElement([1, 1, 1, 1, 1, 0.5, 0.75])
+        coln = 0
+        nCols = X * (fillRows) * colFrac + 1
+        colours = createColormap({ colormap: colourMapName, format: 'rgba', nshades: nCols, })
+        fillPane(paneT, fillRows, colours, colDir, coln);
+        sourceColumn = Math.round((Math.random() * X))
+        nMax = X * fillRows;
+    }
+    n = 0
+}
+function anim_split() {
+    for (let i = 0; i < speed; i++) {
+        if (removeGrain(paneT, sourceColumn, pix)) {
+            // log('grain removed')
+            // colour=colours[n%nCols]
+            add_grain(paneB, sourceColumn, pix.data)
+            n++
+        }
+    }
+    if (play) {
+        requestAnimationFrame(anim_split);
+    }
+}
+function anim_single() {
+    // log('A')
+    for (let i = 0; i < speed; i++) {
+        // log('Adding',sourceColumn)
+        log()
+        add_grain(paneB, sourceColumn, colours[coln % nCols])
+        paneBinUse = true;
+        coln++
+    }
+    if (play) {
+        requestAnimationFrame(anim_single);
+    }
+}
+
+function anim() {
+    if (split) {
+        anim_split();
+    }
+    else {
+        anim_single();
+    }
+}
+
+function splitMode() {
+    initTiers()
+}
+function singleMode() {
+    initSingle()
+}
+
+function initSingle() {
+    // log('init single X', X)
+    paneB = initPane(canvasBot, X, 1, 'black')
+    canvasBot.style.setProperty('height', 'calc((100% - 64px))');
+    canvasBot.style.setProperty('top', 0);
+    canvasTop.style.setProperty('height', 0);
+    canvasTop.style.setProperty('top', 0);
+
+    nCols = X * colourSpeed;
+    colours = createColormap({ colormap: colourMapName, format: 'rgba', nshades: nCols, })
+    coln = 0;
+    speed = 1;
+}
 
 
 
-
-
-
-
-let n, nMax, sourceColumn, pix, speed, paneT, paneB, coln, nCols, colours, topFrac
+let n, nMax, sourceColumn, pix, speed, paneT, paneB, topFrac, X, paneBinUse
+let colDir, coln, nCols, colours, colourSpeed, colourMapName
 let flipped = false;
+let split = false;
+
 // get canvas, contexts, and pixel, objs
 let canvasTop = document.getElementById("canvasTop");
 let ctxTop = canvasTop.getContext("2d",
@@ -604,14 +670,14 @@ pix = ctxBot.getImageData(0, 0, 1, 1); // temp data used for moving pixels arrou
 canvasBot.addEventListener('click', setSourceColumn);
 canvasTop.addEventListener('click', setSourceColumn);
 
-
-
-
-initTiers()
+let play = true
+n = 0;
+coln = 0;
+shuffle();
 trackPointerMovement();
 setButtonActions();
+singleMode();
 
-let play = true
 anim()
 
 
