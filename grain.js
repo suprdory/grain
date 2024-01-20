@@ -326,8 +326,8 @@ function setButtonActions() {
         canvasScr.height = window.innerHeight;
         let ctxScr = canvasScr.getContext('2d');
         ctxScr.imageSmoothingEnabled = false;
-        ctxScr.drawImage(canvasTop, 0, 0, window.innerWidth, window.innerHeight*topFrac)
-        ctxScr.drawImage(canvasBot, 0, window.innerHeight*topFrac, window.innerWidth, window.innerHeight*(1-topFrac))
+        ctxScr.drawImage(canvasTop, 0, 0, window.innerWidth, window.innerHeight * topFrac)
+        ctxScr.drawImage(canvasBot, 0, window.innerHeight * topFrac, window.innerWidth, window.innerHeight * (1 - topFrac))
         var link = document.createElement('a');
         let datetimeStr = new Date().toJSON()
         var dataURL = canvasScr.toDataURL();
@@ -397,21 +397,21 @@ function setButtonActions() {
         // log(play)
     });
 
-    // JavaScript for handling screenshot button (adjust as needed)
-    // const screenshotBtn = document.getElementById('screenshotBtn');
-    // screenshotBtn.addEventListener('click', () => {
-    //   // Add logic for taking a screenshot here
-    //   // alert('Screenshot taken!');
-    // });
-    const clearButton = document.getElementById('clearBtn');
-    clearButton.addEventListener('click', () => {
-        clearScreen()
-    })
+
+    // const clearButton = document.getElementById('clearBtn');
+    // clearButton.addEventListener('click', () => {
+    //     clearScreen()
+    // })
 
     const shuffleButton = document.getElementById('shuffleBtn');
     shuffleButton.addEventListener('click', () => {
         // shuffle()
         initTiers()
+    })
+
+    const flipButton = document.getElementById('flipBtn');
+    flipButton.addEventListener('click', () => {
+        flip();
     })
 
 }
@@ -476,16 +476,17 @@ function fillPane(pane, nRows, colours, colDir, coln) {
             // ((coln % nCols) + nCols) % nCols
             coln += colDir
             add_grain(pane, x, colours[((coln % nCols) + nCols) % nCols])
-            
+
         }
     }
 
 }
 function initTiers() {
-    let Xs = [50, 75, 100, 150, 200, 400];
+    let Xs = [50, 75, 100, 150, 200];
     let X = getRandomElement(Xs)
+    // X = 50
 
-    topFrac = 0.45
+    topFrac = 0.5 // flipping requires 50/50 atm
     paneT = initPane(canvasTop, X, topFrac, 'black')
     paneB = initPane(canvasBot, X, 1 - topFrac, 'black')
     canvasTop.style.setProperty('height', 'calc(' + topFrac + ' * (100% - 64px))');
@@ -494,13 +495,13 @@ function initTiers() {
 
 
 
-    let fillFrac = 1
+    let fillFrac = 0.8
     let fillRows = Math.round(paneT.Y * fillFrac)
     // log('fillRows',fillRows,'paneT.Y',paneT.Y)
-    let colFrac = getRandomElement([1, 1, 1, 1, 1.5, 2, 3, 0.8, 0.5])
+    let colFrac = getRandomElement([1, 1, 1, 1, 1, 0.5, 0.75])
     let colDir = getRandomElement([-1, 1])
     coln = 0
-    nCols = X * (fillRows) * colFrac
+    nCols = X * (fillRows) * colFrac + 1
 
     // let colorSpeeds = [4, 8, 16, 32, 64]
     colours = createColormap({ colormap: getRandomElement(getMapNames()), format: 'rgba', nshades: nCols, })
@@ -511,26 +512,77 @@ function initTiers() {
     nMax = X * fillRows;
 
     // let speedMults = [0.05, 0.1, 0.2]
-    speed = 50 / X
+
+    speed = X / 50
 }
 function anim() {
-    if ((n < nMax)) {
-        for (let i = 0; i < speed; i++) {
-            if (removeGrain(paneT, sourceColumn, pix)) {
-                // log('grain removed')
-                add_grain(paneB, sourceColumn, pix.data)
-                n++
-            }
 
+    for (let i = 0; i < speed; i++) {
+        if (removeGrain(paneT, sourceColumn, pix)) {
+            // log('grain removed')
+            add_grain(paneB, sourceColumn, pix.data)
+            n++
         }
+
     }
-    if (play & (n < nMax)) {
+
+    if (play) {
         requestAnimationFrame(anim);
     }
 }
 
-let n, nMax, sourceColumn, pix, speed, paneT, paneB, coln, nCols, colours,topFrac
-let play = true
+
+function invertY(pane) {
+    let column;
+    for (let x = 0; x < pane.X; x++) {
+        column = pane.ctx.getImageData(x, 0, 1, pane.Y)
+
+        for (let h = 0; h < pane.height[x]; h++) {
+
+            pix.data[0] = column.data[4 * (pane.Y - 1 - h)]
+            pix.data[1] = column.data[4 * (pane.Y - 1 - h) + 1]
+            pix.data[2] = column.data[4 * (pane.Y - 1 - h) + 2]
+
+            pane.ctx.putImageData(pix, x, pane.Y - pane.height[x] + h)
+        }
+    }
+
+}
+function flip() {
+    invertY(paneT)
+    invertY(paneB)
+
+    let temp = paneB;
+    paneB = paneT;
+    paneT = temp;
+
+    flipped = !flipped;
+    log(flipped)
+    if (!flipped) {
+        canvasTop.style.setProperty('height', 'calc(' + topFrac + ' * (100% - 64px))');
+        canvasTop.style.setProperty('top', 0);
+        canvasBot.style.setProperty('height', 'calc(' + (1.0 - topFrac) + ' * (100% - 64px))');
+        canvasBot.style.setProperty('top', 'calc(' + topFrac + ' * (100% - 64px))');
+    }
+    else {
+        canvasBot.style.setProperty('height', 'calc(' + topFrac + ' * (100% - 64px))');
+        canvasBot.style.setProperty('top', 0);
+        canvasTop.style.setProperty('height', 'calc(' + (1.0 - topFrac) + ' * (100% - 64px))');
+        canvasTop.style.setProperty('top', 'calc(' + topFrac + ' * (100% - 64px))');
+    }
+
+
+
+}
+
+
+
+
+
+
+
+let n, nMax, sourceColumn, pix, speed, paneT, paneB, coln, nCols, colours, topFrac
+
 // get canvas, contexts, and pixel, objs
 let canvasTop = document.getElementById("canvasTop");
 let ctxTop = canvasTop.getContext("2d",
@@ -555,6 +607,16 @@ canvasTop.addEventListener('click', setSourceColumn);
 
 
 initTiers()
-anim()
 trackPointerMovement();
 setButtonActions();
+let flipped = false;
+let play = true
+anim()
+
+
+
+// for (let i = 0; i < 200; i++) {
+//     if (removeGrain(paneT, 25, pix)) {
+//         add_grain(paneB, 25, pix.data)
+//     }
+// }
