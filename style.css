@@ -28,29 +28,45 @@ body {
   bottom:0;
   width: 100%;
 
-  /* background-color: rgba(148, 42, 42, 0.8); */
-  /* border-radius: 0px 0px 10px 10px; */
-
   display: flex;
+
   /* justify-content: space-around; */
-  justify-content: center;
+  justify-content: left;
   /* align-items: center; */
+  
   padding: 5px;
   /* flex-direction: column; */
   flex-direction: row;
   /* transition: transform 0.3s ease-in-out; */
 }
+.control-panel-right{
+  position: fixed;
+  bottom:0;
+  width: 100%;
+
+  /* background-color: rgba(148, 42, 42, 0.8); */
+  /* border-radius: 0px 0px 10px 10px; */
+
+  display: flex;
+  /* justify-content: space-around; */
+  justify-content: right;
+  /* align-items: center; */
+  padding: 5px 5px 5px 5px ; 
+  /* flex-direction: column; */
+  flex-direction: row;
+  /* transition: transform 0.3s ease-in-out; */
+}
+
 
 .control-panel.collapsed {
   transform: translateY(-75%);
 }
 
 button {
-  /* padding: 10px 20px; */
-  /* font-size: 16px; */
+
   cursor: pointer;
   border: none;
-  /* border-radius: 5px; */
+
   margin: 3px;
   transition: background-color 0.3s ease, color 0.3s ease;
   background-color: #333;
@@ -63,10 +79,7 @@ button {
 #flipBtn{
   display: none;
 }
-/* button:active {
-  background-color: #7a2626;
-  /* Darker color when the button is pressed */
-/* } */ */
+
 
 .prevent-select {
   -webkit-user-select: none; /* Safari */
