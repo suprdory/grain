@@ -31,9 +31,9 @@ body {
   display: flex;
 
   /* justify-content: space-around; */
-  justify-content: left;
-  /* align-items: center; */
-  
+  /* justify-content: left; */
+  align-items: center;
+
   padding: 5px;
   /* flex-direction: column; */
   flex-direction: row;
