@@ -232,19 +232,19 @@ function random_hole_diff(pane) {
             //left edge
             // log('left edge')
             left_thresh = 0
-            right_thresh = 0.2
+            right_thresh = 0.5
 
         }
         else if (x == (pane.X - 1)) {
             //right edge
             // log('right edge')
-            left_thresh = 0.8
+            left_thresh = 0.5
             right_thresh = 1.0
         }
         else {
             // log('no edge')
-            left_thresh = 0.45
-            right_thresh = 0.55
+            left_thresh = 0.333
+            right_thresh = 0.666
             //not edge case, equal chance of up or side propagation
         }
 
@@ -553,7 +553,84 @@ function fillPane(pane, nRows, colours, colDir, coln) {
     }
 
 }
-function initTiers() {
+function cropPane(pane, canvas, X, yFrac, col) {
+    //crop pane to fit in new canvas Y size
+
+    let windowAR = window.innerWidth / window.innerHeight;
+    let Y = Math.round(yFrac * X / windowAR)
+    //get existing bottom pane data, copy to new canvas after init
+    let oldData = pane.ctx.getImageData(0, pane.Y - Y, X, Y)
+    log(oldData, pane.Y, Y)
+
+    canvas.height = Y;
+    canvas.width = X;
+    canvas.style.width = window.innerWidth + "px";
+    let height = pane.height
+    //cap new height values at pane height
+    for (let i = 0; i < height.length; i++) {
+        height[i] = Math.min(height[i], Y);
+    }
+    let base = pane.base
+    let dhdx = diff(height);
+    log('canvas width', canvas.width)
+
+    //background// 
+    let ctx = canvas.getContext('2d')
+    ctx.fillStyle = col;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    let pix0 = ctx.getImageData(0, 0, 1, 1);
+
+    ctx.putImageData(oldData, 0, 0)
+
+    pane = {}
+    pane.holes = [];
+    pane.height = height;
+    pane.dhdx = dhdx;
+    pane.base = base;
+    pane.pix0 = pix0;
+    pane.ctx = ctx;
+    pane.X = X;
+    pane.Y = Y;
+    return pane
+}
+function copyPane(pane, canvas, X, yFrac, col) {
+    //copy pane into new (taller) canvas
+    log('copying pane')
+    let windowAR = window.innerWidth / window.innerHeight;
+    let Y = Math.round(yFrac * X / windowAR)
+    //get existing bottom pane data, copy to new canvas after init
+    let oldData = pane.ctx.getImageData(0, 0, pane.X, pane.Y)
+    log(oldData, pane.X, pane.Y,X,Y)
+
+    canvas.height = Y;
+    canvas.width = X;
+    canvas.style.width = window.innerWidth + "px";
+
+    let height = pane.height
+    let base = pane.base
+    let dhdx = diff(height);
+    log('canvas width', canvas.width)
+
+    //background// 
+    let ctx = canvas.getContext('2d')
+    ctx.fillStyle = col;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    let pix0 = ctx.getImageData(0, 0, 1, 1);
+
+    ctx.putImageData(oldData, 0,Y-pane.Y)
+
+    pane = {}
+    pane.holes = [];
+    pane.height = height;
+    pane.dhdx = dhdx;
+    pane.base = base;
+    pane.pix0 = pix0;
+    pane.ctx = ctx;
+    pane.X = X;
+    pane.Y = Y;
+    return pane
+}
+function splitMode() {
 
     if (flipped) {
         flip()
@@ -563,11 +640,12 @@ function initTiers() {
     paneT = initPane(canvasTop, X, topFrac, 'black')
     if (paneBinUse) {
         //create new bottom pane from old bottom pane
+        paneB = cropPane(paneB, canvasBot, X, 1 - topFrac, 'black');
     }
     else {
         paneB = initPane(canvasBot, X, 1 - topFrac, 'black')
     }
-    paneB = initPane(canvasBot, X, 1 - topFrac, 'black')
+    // paneB = initPane(canvasBot, X, 1 - topFrac, 'black')
     canvasTop.style.setProperty('height', 'calc(' + topFrac + ' * (100% - 64px))');
     canvasBot.style.setProperty('height', 'calc(' + (1.0 - topFrac) + ' * (100% - 64px))');
     canvasBot.style.setProperty('top', 'calc(' + topFrac + ' * (100% - 64px))');
@@ -584,54 +662,45 @@ function initTiers() {
         sourceColumn = Math.round((Math.random() * X))
         nMax = X * fillRows;
     }
+    else (
+        flip()
+    )
     n = 0
-}
-function anim_split() {
-    for (let i = 0; i < speed; i++) {
-        if (removeGrain(paneT, sourceColumn, pix)) {
-            // log('grain removed')
-            // colour=colours[n%nCols]
-            add_grain(paneB, sourceColumn, pix.data)
-            n++
-        }
-    }
-    if (play) {
-        requestAnimationFrame(anim_split);
-    }
-}
-function anim_single() {
-    // log('A')
-    for (let i = 0; i < speed; i++) {
-        // log('Adding',sourceColumn)
-        log()
-        add_grain(paneB, sourceColumn, colours[coln % nCols])
-        paneBinUse = true;
-        coln++
-    }
-    if (play) {
-        requestAnimationFrame(anim_single);
-    }
 }
 
 function anim() {
     if (split) {
-        anim_split();
+        for (let i = 0; i < speed; i++) {
+            if (removeGrain(paneT, sourceColumn, pix)) {
+                add_grain(paneB, sourceColumn, pix.data)
+                n++
+            }
+        }
+        if (play) {
+            requestAnimationFrame(anim);
+        }
     }
     else {
-        anim_single();
+        for (let i = 0; i < speed; i++) {
+            add_grain(paneB, sourceColumn, colours[coln % nCols])
+            paneBinUse = true;
+            coln++
+        }
+        if (play) {
+            requestAnimationFrame(anim);
+        }
     }
 }
 
-function splitMode() {
-    initTiers()
-}
 function singleMode() {
-    initSingle()
-}
-
-function initSingle() {
     // log('init single X', X)
-    paneB = initPane(canvasBot, X, 1, 'black')
+    if (paneBinUse) {
+        paneB = copyPane(paneB,canvasBot, X, 1, 'black')
+    }
+    else {
+        paneB = initPane(canvasBot, X, 1, 'black')
+    }
+
     canvasBot.style.setProperty('height', 'calc((100% - 64px))');
     canvasBot.style.setProperty('top', 0);
     canvasTop.style.setProperty('height', 0);
@@ -643,8 +712,6 @@ function initSingle() {
     speed = 1;
 }
 
-
-
 let n, nMax, sourceColumn, pix, speed, paneT, paneB, topFrac, X, paneBinUse
 let colDir, coln, nCols, colours, colourSpeed, colourMapName
 let flipped = false;
@@ -652,12 +719,12 @@ let split = false;
 
 // get canvas, contexts, and pixel, objs
 let canvasTop = document.getElementById("canvasTop");
-let ctxTop = canvasTop.getContext("2d",
-    {
-        alpha: false,
-        willReadFrequently: true,
-        imageSmoothingEnabled: false
-    });
+// let ctxTop = canvasTop.getContext("2d",
+//     {
+//         alpha: false,
+//         willReadFrequently: true,
+//         imageSmoothingEnabled: false
+//     });
 let canvasBot = document.getElementById("canvasBot");
 let ctxBot = canvasBot.getContext("2d",
     {
