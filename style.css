@@ -4,16 +4,42 @@ body {
   padding: 0;
 }
 
-canvas {
+#canvasBot {
+  top: calc(0.333 * (100% - 64px));
   position: fixed;
   z-index: -1;
   cursor: crosshair;
   image-rendering: pixelated;
   display: block;
-  height: calc(100% - 64px);
+  height: calc(0.666 * (100% - 64px));
+}
+
+#canvasTop {
+  position: fixed;
+  z-index: -1;
+  cursor: crosshair;
+  image-rendering: pixelated;
+  display: block;
+  height: calc(0.333 * (100% - 64px));
 }
 
 .control-panel {
+  position: fixed;
+  bottom:0;
+  width: 100%;
+
+  display: flex;
+
+  /* justify-content: space-around; */
+  justify-content: center;
+
+
+  padding: 5px;
+  /* flex-direction: column; */
+  flex-direction: row;
+  /* transition: transform 0.3s ease-in-out; */
+}
+.control-panel-right{
   position: fixed;
   bottom:0;
   width: 100%;
@@ -23,24 +49,23 @@ canvas {
 
   display: flex;
   /* justify-content: space-around; */
-  justify-content: center;
-  /* align-items: center; */
-  padding: 5px;
+  justify-content: right;
+  padding: 5px 5px 5px 5px ; 
   /* flex-direction: column; */
   flex-direction: row;
-  transition: transform 0.3s ease-in-out;
+  /* transition: transform 0.3s ease-in-out; */
 }
+
 
 .control-panel.collapsed {
   transform: translateY(-75%);
 }
 
 button {
-  /* padding: 10px 20px; */
-  /* font-size: 16px; */
+
   cursor: pointer;
   border: none;
-  /* border-radius: 5px; */
+
   margin: 3px;
   transition: background-color 0.3s ease, color 0.3s ease;
   background-color: #333;
@@ -50,10 +75,10 @@ button {
   font-size: 16px;
 }
 
-button:active {
-  background-color: #555;
-  /* Darker color when the button is pressed */
+#flipBtn{
+  display: none;
 }
+
 
 .prevent-select {
   -webkit-user-select: none; /* Safari */

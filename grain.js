@@ -3,16 +3,13 @@ Array.prototype.random = function () {
 }
 let log = console.log;
 import { createColormap, getMapNames } from "./colormaps.js";
-
 function getMouseRowCol(event) {
-
+    // log(event)
     // Get the mouse coordinates relative to the canvas
     // in cavans pixels, not css pixels
-    var x = Math.floor(canvas.width / canvas.getBoundingClientRect().width * (event.clientX - canvas.getBoundingClientRect().left));
-    var y = Math.floor(canvas.width / canvas.getBoundingClientRect().width * (event.clientY - canvas.getBoundingClientRect().top));
+    var x = Math.floor(canvasBot.width / canvasBot.getBoundingClientRect().width * (event.clientX - canvasBot.getBoundingClientRect().left));
+    var y = Math.floor(canvasBot.width / canvasBot.getBoundingClientRect().width * (event.clientY - canvasBot.getBoundingClientRect().top));
     return { 'column': x, 'row': y }
-    // Output the coordinates
-    // console.log('Mouse Click Coordinates: X=' + x + ', Y=' + y);
 
 }
 function setSourceColumn(event) {
@@ -21,8 +18,6 @@ function setSourceColumn(event) {
     sourceColumn = rowCol.column
 
 }
-
-// Function to track mouse and touchscreen pointer movement
 function trackPointerMovement() {
     // Initialize variables to store coordinates
     let pointerX = 0;
@@ -56,12 +51,11 @@ function trackPointerMovement() {
             pointerX = event.clientX;
             pointerY = event.clientY;
         }
-        let columnx = Math.floor(canvas.width / canvas.getBoundingClientRect().width * pointerX);
+        let columnx = Math.floor(canvasBot.width / canvasBot.getBoundingClientRect().width * pointerX);
         //   log(columnx)
         sourceColumn = columnx;
     }
 }
-
 function diff(arr) {
     return arr.slice(1).map((value, index) => value - arr[index])
 }
@@ -86,17 +80,18 @@ function getRandomElement(arr) {
     // Return the random element
     return arr[randomIndex];
 }
-function add_grain(x, colourx) {
+function add_grain(pane, x, colour) {
     // log(x, height[x])
-    let colour = colours[colourx]
-    if (height[x] < Y) {// column not full
+    if (pane.height[x] < pane.Y) {// column not full
+        // log(pix.data[0], colour)
         pix.data[0] = colour[0];
         pix.data[1] = colour[1];
         pix.data[2] = colour[2];
-        ctx.putImageData(pix, x, Y - height[x] - 1);
-        height[x]++;
-        dhdx[x]--;
-        dhdx[x - 1]++;
+        pane.ctx.putImageData(pix, x, pane.Y - pane.height[x] - 1);
+        pane.height[x]++;
+        pane.dhdx[x]--;
+        pane.dhdx[x - 1]++;
+        while (random_tumble(pane)) { };
         return true;
     }
     else {
@@ -104,43 +99,216 @@ function add_grain(x, colourx) {
     }
     // dhdx = diff(height);
 }
-function movePixel(x1, y1, x2, y2) {
-    let pix1 = ctx.getImageData(x1, y1, 1, 1);
-    ctx.putImageData(pix1, x2, y2);
-    ctx.putImageData(pixEmpty, x1, y1);
+function removeGrain(pane, x, pix) {
+    // log(pane.height)
+    if (pane.height[x] - pane.base[x] > 0) {
+
+        let pixOut = pane.ctx.getImageData(x, pane.Y - 1, 1, 1).data
+        pix.data[0] = pixOut[0]
+        pix.data[1] = pixOut[1]
+        pix.data[2] = pixOut[2]
+        pane.ctx.putImageData(pane.pix0, x, pane.Y - 1)
+        if (pane.height[x] > 1) {
+            pane.base[x]++; // increment base height, if grains above
+            pane.holes.push([x, pane.Y - 1])
+        }
+        else {
+            pane.height[x] = 0;
+            pane.dhdx = diff(pane.height)
+        }
+        while (random_hole_diff(paneT)) { }
+        while (random_tumble(paneT)) { }
+
+        return true
+    }
+    else {
+        // log('No Grain')
+        pix.data[0] = 0
+        pix.data[1] = 0
+        pix.data[2] = 0
+        return false
+    }
 }
-function random_tumble() {
-    let unstables = findIndices(dhdx, (x) => x < -1 || x > 1)
+function movePixel(pane, x1, y1, x2, y2) {
+    let pix1 = pane.ctx.getImageData(x1, y1, 1, 1);
+    pane.ctx.putImageData(pix1, x2, y2);
+    pane.ctx.putImageData(pane.pix0, x1, y1);
+}
+function random_tumble(pane) {
+    // find unstable grain on top and tumble one grain, one step
+    let unstables = findIndices(pane.dhdx, (x) => x < -1 || x > 1)
     if (unstables.length > 0) {
         let x = getRandomElement(unstables)
         // x=0
         // log("x", x)
-        if (dhdx[x] < 0) {
-            movePixel(x, Y - height[x], x + 1, Y - height[x + 1] - 1)
-            height[x]--;
-            height[x + 1]++;
-            dhdx[x - 1]--;
-            dhdx[x] += 2;
-            dhdx[x + 1]--;
+        if (pane.dhdx[x] < 0) {
+            movePixel(pane, x, pane.Y - pane.height[x], x + 1, pane.Y - pane.height[x + 1] - 1)
+            pane.height[x]--;
+            pane.height[x + 1]++;
+            pane.dhdx[x - 1]--;
+            pane.dhdx[x] += 2;
+            pane.dhdx[x + 1]--;
 
         }
         else {
-            movePixel(x + 1, Y - height[x + 1], x, Y - height[x] - 1)
-            height[x + 1]--;
-            height[x]++;
+            movePixel(pane, x + 1, pane.Y - pane.height[x + 1], x, pane.Y - pane.height[x] - 1)
+            pane.height[x + 1]--;
+            pane.height[x]++;
 
-            dhdx[x - 1]++;
-            dhdx[x] -= 2;
-            dhdx[x + 1]++;
+            pane.dhdx[x - 1]++;
+            pane.dhdx[x] -= 2;
+            pane.dhdx[x + 1]++;
 
         }
         // dhdx = diff(height);
+        // log('h tum',pane.height);
         return true;
     }
     else {
+        // log('h notum',pane.height);
         return false;
     }
 
+}
+function random_settle(pane) {
+    // find holes at the bottom and fill
+
+    let holes = findIndices(pane.base, (x) => x > 0);
+    // log('holes',holes)
+    if (holes.length > 0) {
+        let x = getRandomElement(holes)
+        // log('holex',x)
+        // number of grains above hle
+
+        let lcr = getRandomElement([-1, -1, -1, -1, -1, -1, -1, 0, 1, 1, 1, 1, 1, 1, 1])
+        // let lcr = getRandomElement([0])
+        if (lcr == 0 || x + lcr < 0 || x + lcr > X - 1) {
+
+            let n = pane.height[x] - pane.base[x]
+            // log('settle n',n)
+            for (let i = 0; i < n; i++) {
+                movePixel(pane, x, Y - i - 2, x, Y - i - 1);
+            }
+            pane.base[x]--;
+            pane.height[x]--;
+            pane.dhdx[x]++;
+            pane.dhdx[x - 1]--;
+
+
+        }
+        else if (lcr == -1) {
+            movePixel(pane, x - 1, Y - 1, x, Y - 1);
+            pane.base[x]--;
+            pane.base[x - 1]++;
+        }
+        else {
+            movePixel(pane, x + 1, Y - 1, x, Y - 1);
+            pane.base[x]--;
+            pane.base[x + 1]++;
+        }
+        // log('h set',pane.height);
+        return true;
+
+
+    }
+    else {
+        // log('h noset',pane.height,'b noset',pane.base);
+        return false;
+    }
+}
+function random_hole_diff(pane) {
+    // assume max 1 hole, so function should always be called after grain removal and 
+    // called until it returns false, i.e. no hole remaining.
+
+    // diffuse holes upwards and sidewards until they get to the top and dissappear.  
+    // requires array containing hole coors, could be empty
+    // log('n', pane.holes.length, pane.holes[0])
+    if (pane.holes.length > 0) {
+        let x = pane.holes[0][0]
+        let y = pane.holes[0][1]
+        // log(x, y)
+        let left_thresh, right_thresh
+        if (x == 0) {
+            //left edge
+            // log('left edge')
+            left_thresh = 0
+            right_thresh = 0.5
+
+        }
+        else if (x == (pane.X - 1)) {
+            //right edge
+            // log('right edge')
+            left_thresh = 0.5
+            right_thresh = 1.0
+        }
+        else {
+            // log('no edge')
+            left_thresh = 0.333
+            right_thresh = 0.666
+            //not edge case, equal chance of up or side propagation
+        }
+
+        const randomNumber = Math.random();
+        if (randomNumber < left_thresh) {
+            // console.log("Left");
+            movePixel(pane, x - 1, y, x, y)
+            if (pane.Y - (y) < pane.height[x - 1]) {
+                pane.holes[0] = [x - 1, y]
+            }
+            else {
+                pane.holes = []
+                pane.height[x - 1]--
+                pane.dhdx[x - 2]--
+                pane.dhdx[x - 1]++
+            }
+            if (y == (pane.Y - 1)) {
+                //affects base height
+                pane.base[x - 1] = 1
+                pane.base[x] = 0
+            }
+        }
+        else if (randomNumber < right_thresh) {
+            // console.log("Up");
+            movePixel(pane, x, y - 1, x, y)
+            if (pane.Y - (y - 1) < pane.height[x]) {
+                pane.holes[0] = [x, y - 1]
+            }
+            else {
+                pane.holes = []
+                pane.height[x]--
+                pane.dhdx[x - 1]--
+                pane.dhdx[x]++
+            }
+            if (y == (pane.Y - 1)) {
+                //affects base height
+                pane.base[x] = 0
+            }
+        }
+        else {
+            // console.log("Right");
+            movePixel(pane, x + 1, y, x, y)
+            if (pane.Y - (y) < pane.height[x + 1]) {
+                pane.holes[0] = [x + 1, y]
+            }
+            else {
+                pane.holes = []
+                pane.height[x + 1]--
+                pane.dhdx[x]--
+                pane.dhdx[x + 1]++
+            }
+            if (y == (pane.Y - 1)) {
+                //affects base height
+                pane.base[x + 1] = 1
+                pane.base[x] = 0
+            }
+        }
+        // log('new pos', pane.holes[0])
+        return true;
+    }
+    else {
+        //no holes
+        return false
+    }
 }
 function setButtonActions() {
 
@@ -156,8 +324,8 @@ function setButtonActions() {
         canvasScr.height = window.innerHeight;
         let ctxScr = canvasScr.getContext('2d');
         ctxScr.imageSmoothingEnabled = false;
-        ctxScr.drawImage(canvas, 0, 0, window.innerWidth, window.innerHeight)
-
+        ctxScr.drawImage(canvasTop, 0, 0, window.innerWidth, window.innerHeight * topFrac)
+        ctxScr.drawImage(canvasBot, 0, window.innerHeight * topFrac, window.innerWidth, window.innerHeight * (1 - topFrac))
         var link = document.createElement('a');
         let datetimeStr = new Date().toJSON()
         var dataURL = canvasScr.toDataURL();
@@ -227,12 +395,7 @@ function setButtonActions() {
         // log(play)
     });
 
-    // JavaScript for handling screenshot button (adjust as needed)
-    // const screenshotBtn = document.getElementById('screenshotBtn');
-    // screenshotBtn.addEventListener('click', () => {
-    //   // Add logic for taking a screenshot here
-    //   // alert('Screenshot taken!');
-    // });
+
     const clearButton = document.getElementById('clearBtn');
     clearButton.addEventListener('click', () => {
         clearScreen()
@@ -241,109 +404,329 @@ function setButtonActions() {
     const shuffleButton = document.getElementById('shuffleBtn');
     shuffleButton.addEventListener('click', () => {
         shuffle()
+        if (split) {
+            paneBinUse = false;
+            splitMode()
+        }
+        else {
+            paneBinUse = false;
+            singleMode()
+        }
+
+    })
+
+    const flipButton = document.getElementById('flipBtn');
+    flipButton.addEventListener('click', () => {
+        flip();
+    })
+
+    const splitButton = document.getElementById('splitBtn');
+    splitButton.addEventListener('click', () => {
+        splitButton.classList.toggle('split');
+        const icon = splitButton.querySelector('i');
+
+        if (splitButton.classList.contains('split')) {
+            icon.textContent = 'crop_portrait'
+            split = true
+            flipButton.style.display = 'block';
+            clearButton.style.display = 'none';
+            splitMode();
+        }
+        else {
+            icon.textContent = 'splitscreen'
+            split = false
+            flipButton.style.display = 'none';
+            clearButton.style.display = 'block';
+            singleMode();
+        }
+
     })
 
 }
 function clearScreen() {
-    ctx.reset();
-    height = new Int16Array(X);
-    dhdx = diff(height);
+    clearPane(paneB);
+    // clearPane(paneT);
+}
+function clearPane(pane) {
+    pane.ctx.reset();
+    pane.height = new Int16Array(X);
+    pane.dhdx = diff(pane.height);
+    pane.base = new Int16Array(X);
     n = 0;
 }
-
 function shuffle() {
+    let Xs = [50, 75, 100, 150, 200];
     X = getRandomElement(Xs)
-    let windowAR = window.innerWidth / window.innerHeight;
-    Y = Math.round(X / windowAR)
-    canvas.height = Y;
-    canvas.width = X;
-    canvas.style.width = window.innerWidth + "px";
-    height = new Int16Array(X);
-    dhdx = diff(height);
+    // X = 50
+    sourceColumn = Math.floor((Math.random() * X))
+    let colourSpeeds = [4, 8, 16, 32, 64]
+    colourSpeed = getRandomElement(colourSpeeds)
+    colourMapName = getRandomElement(getMapNames())
+    colDir = getRandomElement([-1, 1]);
+    speed = X / 50;
 
-    //background
-    // ctx.fillStyle = "navy";
-    // ctx.fillRect(0, 0, canvas.width, canvas.height);
+    log('X', X, ', sourceColumn',sourceColumn,', palette', colourMapName,', speed',speed,', colourSpeed',colourSpeed,', colDir',colDir)
 
-    sourceColumn = Math.round((Math.random() * X))
-
-
-    let colorSpeed = getRandomElement(colorSpeeds)
-    nCols = X * colorSpeed;
-
-    let colourMapName = getRandomElement(colourMapNames)
-    colours = createColormap({ colormap: colourMapName, format: 'rgba', nshades: nCols, })
-
-    pix = ctx.getImageData(0, 0, 1, 1);
-    pixEmpty = ctx.getImageData(0, 0, 1, 1);
-
-    height = new Int16Array(X);
-    dhdx = diff(height);
-
-    let speedMult = getRandomElement(speedMults)
-    speed = X * X * speedMult / 200; // number of grains added per iteration
-    n = 0
-    nMax = X * Y;
-
-    log('X', X, 'colSpd', colorSpeed, 'spdMult', speedMult, 'palette', colourMapName)
 }
+function invertY(pane) {
+    let column;
+    for (let x = 0; x < pane.X; x++) {
+        column = pane.ctx.getImageData(x, 0, 1, pane.Y)
 
-let Xs = [50, 75, 100, 150, 200, 400, 600];
-let speedMults = [0.05, 0.1, 0.2]
-let colorSpeeds = [4, 8, 16, 32, 64]
+        for (let h = 0; h < pane.height[x]; h++) {
 
+            pix.data[0] = column.data[4 * (pane.Y - 1 - h)]
+            pix.data[1] = column.data[4 * (pane.Y - 1 - h) + 1]
+            pix.data[2] = column.data[4 * (pane.Y - 1 - h) + 2]
 
-let n, nMax, sourceColumn, X, Y, nCols, colours, height, dhdx, pix, pixEmpty, speed
-
-let canvas = document.getElementById("myCanvas");
-let ctx = canvas.getContext("2d",
-    {
-        alpha: false,
-        willReadFrequently: true,
-        imageSmoothingEnabled: false
-    });
-// Add a click event listener to the canvas
-canvas.addEventListener('click', setSourceColumn);
-
-let colourMapNames = getMapNames()
-let play = true
-let coln = 0;
-
-shuffle();
-
-// let h0=[0,0,0,1,0,0]
-// let dh0=diff(h0)
-// log(h0,dh0)
-
-// let h=[0,0,0,2,0,0]
-// let dh=diff(h)
-// log(h,dh)
-// let h1=[0,0,1,1,0,0]
-// let dh1=diff(h1)
-// log(h1,dh1)
-
-function anim() {
-    if ((n < nMax)) {
-        for (let i = 0; i < speed; i++) {
-            if (add_grain(sourceColumn, coln % nCols)) {
-                while (random_tumble()) { };
-                n++;
-                coln++;
-            };
+            pane.ctx.putImageData(pix, x, pane.Y - pane.height[x] + h)
         }
     }
 
-    if (play & (n < nMax)) {
-        requestAnimationFrame(anim);
+}
+function flip() {
+    invertY(paneT)
+    invertY(paneB)
+
+    let topPaneData=paneT.ctx.getImageData(0,0,paneT.X,paneT.Y)
+    let topPaneHeight=paneT.height
+    let topPaneBase=paneT.base
+    let topPaneDhdx=paneT.dhdx
+    let topPaneHoles=paneT.holes
+
+    paneT.ctx.putImageData(paneB.ctx.getImageData(0,0,paneB.X,paneB.Y),0,0)
+    paneB.ctx.putImageData(topPaneData,0,0)
+    
+    paneT.height=paneB.height;
+    paneT.dhdx=paneB.dhdx;
+    paneT.base=paneB.base;
+    paneT.holes=paneB.holes;
+
+
+    paneB.height=topPaneHeight;
+    paneB.dhdx=topPaneDhdx;
+    paneB.base=topPaneBase;
+    paneB.holes=topPaneHoles;
+}
+function initPane(canvas, X, yFrac, col) {
+    let windowAR = window.innerWidth / window.innerHeight;
+    let Y = Math.round(yFrac * X / windowAR)
+    canvas.height = Y;
+    canvas.width = X;
+    canvas.style.width = window.innerWidth + "px";
+    let height = new Int16Array(X); // top of column
+    let base = new Int16Array(X); // start of column
+    let dhdx = diff(height);
+    // log('canvas width', canvas.width)
+
+    //background// 
+    let ctx = canvas.getContext('2d',{willReadFrequently:true})
+    ctx.fillStyle = col;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    let pix0 = ctx.getImageData(0, 0, 1, 1);
+
+    let pane = {}
+    pane.holes = [];
+    pane.height = height;
+    pane.dhdx = dhdx;
+    pane.base = base;
+    pane.pix0 = pix0;
+    pane.ctx = ctx;
+    pane.X = X;
+    pane.Y = Y;
+    return pane
+}
+function fillPane(pane, nRows,nColsFill) {
+    colours = createColormap({ colormap: colourMapName, format: 'rgba', nshades: nColsFill, })
+    // log('nCols',colours.length,nColsFill)
+    let colxFill=0;
+    // log('colDir',colDir)
+    for (let y = 0; y < nRows; y++) {
+        for (let x = 0; x < pane.X; x++) {
+            colxFill += colDir
+            let colour=colours[((colxFill % nColsFill) + nColsFill) % nColsFill]
+            // log(colour)
+            add_grain(pane, x, colour)
+
+        }
     }
 
 }
+function cropPane(pane, canvas, X, yFrac, col) {
+    //crop pane to fit in new canvas Y size
 
+    let windowAR = window.innerWidth / window.innerHeight;
+    let Y = Math.round(yFrac * X / windowAR)
+    //get existing bottom pane data, copy to new canvas after init
+    let oldData = pane.ctx.getImageData(0, pane.Y - Y, X, Y)
+    // log(oldData, pane.Y, Y)
 
+    canvas.height = Y;
+    canvas.width = X;
+    canvas.style.width = window.innerWidth + "px";
+    let height = pane.height
+    //cap new height values at pane height
+    for (let i = 0; i < height.length; i++) {
+        height[i] = Math.min(height[i], Y);
+    }
+    let base = pane.base
+    let dhdx = diff(height);
+    // log('canvas width', canvas.width)
 
+    //background// 
+    let ctx = canvas.getContext('2d')
+    ctx.fillStyle = col;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    let pix0 = ctx.getImageData(0, 0, 1, 1);
 
-anim()
+    ctx.putImageData(oldData, 0, 0)
+
+    pane = {}
+    pane.holes = [];
+    pane.height = height;
+    pane.dhdx = dhdx;
+    pane.base = base;
+    pane.pix0 = pix0;
+    pane.ctx = ctx;
+    pane.X = X;
+    pane.Y = Y;
+    return pane
+}
+function copyPane(pane, canvas, X, yFrac, col) {
+    //copy pane into new (taller) canvas
+    // log('copying pane')
+    let windowAR = window.innerWidth / window.innerHeight;
+    let Y = Math.round(yFrac * X / windowAR)
+    //get existing bottom pane data, copy to new canvas after init
+    let oldData = pane.ctx.getImageData(0, 0, pane.X, pane.Y)
+    // log(oldData, pane.X, pane.Y,X,Y)
+
+    canvas.height = Y;
+    canvas.width = X;
+    canvas.style.width = window.innerWidth + "px";
+
+    let height = pane.height
+    let base = pane.base
+    let dhdx = diff(height);
+    // log('canvas width', canvas.width)
+
+    //background// 
+    let ctx = canvas.getContext('2d')
+    ctx.fillStyle = col;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    let pix0 = ctx.getImageData(0, 0, 1, 1);
+
+    ctx.putImageData(oldData, 0,Y-pane.Y)
+
+    pane = {}
+    pane.holes = [];
+    pane.height = height;
+    pane.dhdx = dhdx;
+    pane.base = base;
+    pane.pix0 = pix0;
+    pane.ctx = ctx;
+    pane.X = X;
+    pane.Y = Y;
+    return pane
+}
+function splitMode() {
+
+    topFrac = 0.5 // flipping requires 50/50 atm
+    paneT = initPane(canvasTop, X, topFrac, 'black')
+    if (paneBinUse) {
+        //create new bottom pane from old bottom pane
+        paneB = cropPane(paneB, canvasBot, X, 1 - topFrac, 'black');
+    }
+    else {
+        paneB = initPane(canvasBot, X, 1 - topFrac, 'black')
+    }
+    // paneB = initPane(canvasBot, X, 1 - topFrac, 'black')
+    canvasTop.style.setProperty('height', 'calc(' + topFrac + ' * (100% - 64px))');
+    canvasBot.style.setProperty('height', 'calc(' + (1.0 - topFrac) + ' * (100% - 64px))');
+    canvasBot.style.setProperty('top', 'calc(' + topFrac + ' * (100% - 64px))');
+
+    if (!paneBinUse) {
+        let fillFrac = 0.8
+        let fillRows = Math.round(paneT.Y * fillFrac)
+
+        let colFrac = getRandomElement([1, 1, 1, 1, 1, 0.5, 0.75])
+        let nColsFill = Math.round(X * (fillRows) * colFrac + 1)
+        fillPane(paneT, fillRows,nColsFill);
+        sourceColumn = Math.round((Math.random() * X))
+        nMax = X * fillRows;
+    }
+    else (
+        flip()
+    )
+    n = 0
+}
+function anim() {
+    if (split) {
+        for (let i = 0; i < speed; i++) {
+            if (removeGrain(paneT, sourceColumn, pix)) {
+                add_grain(paneB, sourceColumn, pix.data);
+                paneBinUse = true;
+                n++
+            }
+        }
+        if (play) {
+            requestAnimationFrame(anim);
+        }
+    }
+    else {
+        for (let i = 0; i < speed; i++) {
+            let colour=colours[((colx % nCols) + nCols) % nCols]
+            add_grain(paneB, sourceColumn, colour)
+            paneBinUse = true;
+            colx+=colDir;
+        }
+        if (play) {
+            requestAnimationFrame(anim);
+        }
+    }
+}
+function singleMode() {
+    // log('init single X', X)
+    if (paneBinUse) {
+        paneB = copyPane(paneB,canvasBot, X, 1, 'black')
+    }
+    else {
+        paneB = initPane(canvasBot, X, 1, 'black')
+    }
+
+    canvasBot.style.setProperty('height', 'calc((100% - 64px))');
+    canvasBot.style.setProperty('top', 0);
+    canvasTop.style.setProperty('height', 0);
+    canvasTop.style.setProperty('top', 0);
+
+    nCols = X * colourSpeed;
+    colours = createColormap({ colormap: colourMapName, format: 'rgba', nshades: nCols, })
+    // log('nCols',nCols,colours.length)
+}
+
+let n, nMax, sourceColumn, speed, paneT, paneB, topFrac, X, paneBinUse
+let colDir, colx, nCols, colours, colourSpeed, colourMapName
+let split = false;
+
+// get canvas, contexts, and pixel, objs
+let canvasTop = document.getElementById("canvasTop");
+let canvasBot = document.getElementById("canvasBot");
+let pix = canvasBot.getContext("2d",
+    {
+        alpha: false,
+        willReadFrequently: true,
+    }).getImageData(0, 0, 1, 1);
+
+canvasBot.addEventListener('click', setSourceColumn);
+canvasTop.addEventListener('click', setSourceColumn);
+
+let play = true
+n = 0;
+colx = 0;
+shuffle();
 trackPointerMovement();
 setButtonActions();
+singleMode();
 
+anim()
 
