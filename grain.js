@@ -730,6 +730,7 @@ canvasTop.addEventListener('click', setSourceColumn);
 let play = true
 n = 0;
 colx = 0;
+if (colDir==-1){colx=-1}
 shuffle();
 trackPointerMovement();
 setButtonActions();
