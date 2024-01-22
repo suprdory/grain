@@ -465,7 +465,7 @@ function shuffle() {
     colDir = getRandomElement([-1, 1]);
     speed = X / 50;
 
-    log('X', X, ', sourceColumn',sourceColumn,', palette', colourMapName,', speed',speed,', colourSpeed',colourSpeed,', colDir',colDir)
+    log('X', X, ', sourceColumn', sourceColumn, ', palette', colourMapName, ', speed', speed, ', colourSpeed', colourSpeed, ', colDir', colDir)
 
 }
 function invertY(pane) {
@@ -488,25 +488,25 @@ function flip() {
     invertY(paneT)
     invertY(paneB)
 
-    let topPaneData=paneT.ctx.getImageData(0,0,paneT.X,paneT.Y)
-    let topPaneHeight=paneT.height
-    let topPaneBase=paneT.base
-    let topPaneDhdx=paneT.dhdx
-    let topPaneHoles=paneT.holes
+    let topPaneData = paneT.ctx.getImageData(0, 0, paneT.X, paneT.Y)
+    let topPaneHeight = paneT.height
+    let topPaneBase = paneT.base
+    let topPaneDhdx = paneT.dhdx
+    let topPaneHoles = paneT.holes
 
-    paneT.ctx.putImageData(paneB.ctx.getImageData(0,0,paneB.X,paneB.Y),0,0)
-    paneB.ctx.putImageData(topPaneData,0,0)
-    
-    paneT.height=paneB.height;
-    paneT.dhdx=paneB.dhdx;
-    paneT.base=paneB.base;
-    paneT.holes=paneB.holes;
+    paneT.ctx.putImageData(paneB.ctx.getImageData(0, 0, paneB.X, paneB.Y), 0, 0)
+    paneB.ctx.putImageData(topPaneData, 0, 0)
+
+    paneT.height = paneB.height;
+    paneT.dhdx = paneB.dhdx;
+    paneT.base = paneB.base;
+    paneT.holes = paneB.holes;
 
 
-    paneB.height=topPaneHeight;
-    paneB.dhdx=topPaneDhdx;
-    paneB.base=topPaneBase;
-    paneB.holes=topPaneHoles;
+    paneB.height = topPaneHeight;
+    paneB.dhdx = topPaneDhdx;
+    paneB.base = topPaneBase;
+    paneB.holes = topPaneHoles;
 }
 function initPane(canvas, X, yFrac, col) {
     let windowAR = window.innerWidth / window.innerHeight;
@@ -520,7 +520,7 @@ function initPane(canvas, X, yFrac, col) {
     // log('canvas width', canvas.width)
 
     //background// 
-    let ctx = canvas.getContext('2d',{willReadFrequently:true})
+    let ctx = canvas.getContext('2d', { willReadFrequently: true })
     ctx.fillStyle = col;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     let pix0 = ctx.getImageData(0, 0, 1, 1);
@@ -536,15 +536,15 @@ function initPane(canvas, X, yFrac, col) {
     pane.Y = Y;
     return pane
 }
-function fillPane(pane, nRows,nColsFill) {
+function fillPane(pane, nRows, nColsFill) {
     colours = createColormap({ colormap: colourMapName, format: 'rgba', nshades: nColsFill, })
     // log('nCols',colours.length,nColsFill)
-    let colxFill=0;
+    let colxFill = 0;
     // log('colDir',colDir)
     for (let y = 0; y < nRows; y++) {
         for (let x = 0; x < pane.X; x++) {
             colxFill += colDir
-            let colour=colours[((colxFill % nColsFill) + nColsFill) % nColsFill]
+            let colour = colours[((colxFill % nColsFill) + nColsFill) % nColsFill]
             // log(colour)
             add_grain(pane, x, colour)
 
@@ -616,7 +616,7 @@ function copyPane(pane, canvas, X, yFrac, col) {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     let pix0 = ctx.getImageData(0, 0, 1, 1);
 
-    ctx.putImageData(oldData, 0,Y-pane.Y)
+    ctx.putImageData(oldData, 0, Y - pane.Y)
 
     pane = {}
     pane.holes = [];
@@ -651,7 +651,7 @@ function splitMode() {
 
         let colFrac = getRandomElement([1, 1, 1, 1, 1, 0.5, 0.75])
         let nColsFill = Math.round(X * (fillRows) * colFrac + 1)
-        fillPane(paneT, fillRows,nColsFill);
+        fillPane(paneT, fillRows, nColsFill);
         sourceColumn = Math.round((Math.random() * X))
         nMax = X * fillRows;
     }
@@ -675,10 +675,10 @@ function anim() {
     }
     else {
         for (let i = 0; i < speed; i++) {
-            let colour=colours[((colx % nCols) + nCols) % nCols]
+            let colour = colours[((colx % nCols) + nCols) % nCols]
             add_grain(paneB, sourceColumn, colour)
             paneBinUse = true;
-            colx+=colDir;
+            colx += colDir;
         }
         if (play) {
             requestAnimationFrame(anim);
@@ -688,7 +688,7 @@ function anim() {
 function singleMode() {
     // log('init single X', X)
     if (paneBinUse) {
-        paneB = copyPane(paneB,canvasBot, X, 1, 'black')
+        paneB = copyPane(paneB, canvasBot, X, 1, 'black')
     }
     else {
         paneB = initPane(canvasBot, X, 1, 'black')
@@ -726,7 +726,63 @@ colx = 0;
 shuffle();
 trackPointerMovement();
 setButtonActions();
-singleMode();
 
-anim()
+// singleMode();
+// anim()
 
+
+splitMode()
+
+animInvert()
+
+function animInvert() {
+    let nFrames = 30
+    let n = 0
+    let t;
+    let topFrac = 0.5
+    update()
+    // for (let i = 0; i < nFrames; i++) {
+    function update() {
+        n+=1/nFrames
+        t=1-n*1
+        // log(t)
+        canvasTop.style.setProperty('height', 'calc(' + t * (1.0 - topFrac) + ' * (100% - 64px))');
+        canvasTop.style.setProperty('top', 'calc(' + n*1 *topFrac + ' * (100% - 64px))');
+        
+        // canvasTop.style.setProperty('height', 'calc(' + t * (1.0 - topFrac) + ' * (100% - 64px))');
+        // canvasTop.style.setProperty('top', 'calc(' + n*1 *topFrac + ' * (100% - 64px))');
+        
+        if (n < 1.0) {
+            requestAnimationFrame(update)
+        }
+    }
+}
+//can't use context transform becuse we're all about pixels.
+
+// paneT.ctx.beginPath()
+// paneT.ctx.strokeStyle='black'
+// paneT.ctx.moveTo(50,50)
+// paneT.ctx.lineTo(20,20)
+// paneT.ctx.stroke();
+
+
+// update()
+// // for (let i=0;i<nFrames;i++){
+// //     t-=2.0/nFrames
+
+// //     paneT.ctx.transform(1,0,0,t,10,0)
+// //     // requestAnimationFrame(animInvert)
+// // }
+// function update(){
+//     // log(t)
+//     t-=2.0/nFrames
+//     paneT.ctx.transform(1,0,0,t,0,0)
+//     paneT.ctx.beginPath()
+//     paneT.ctx.strokeStyle='black'
+//     paneT.ctx.moveTo(50,50)
+//     paneT.ctx.lineTo(20,20)
+//     paneT.ctx.stroke();
+//     if (t>-1){
+//         requestAnimationFrame(update)
+//     }
+// }
