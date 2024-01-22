@@ -324,8 +324,15 @@ function setButtonActions() {
         canvasScr.height = window.innerHeight;
         let ctxScr = canvasScr.getContext('2d');
         ctxScr.imageSmoothingEnabled = false;
-        ctxScr.drawImage(canvasTop, 0, 0, window.innerWidth, window.innerHeight * topFrac)
-        ctxScr.drawImage(canvasBot, 0, window.innerHeight * topFrac, window.innerWidth, window.innerHeight * (1 - topFrac))
+
+        if (split){
+            ctxScr.drawImage(canvasTop, 0, 0, window.innerWidth, window.innerHeight * topFrac)
+            ctxScr.drawImage(canvasBot, 0, window.innerHeight * topFrac, window.innerWidth, window.innerHeight * (1 - topFrac))
+        }
+        else{
+            ctxScr.drawImage(canvasBot, 0, 0, window.innerWidth, window.innerHeight)
+        }
+       
         var link = document.createElement('a');
         let datetimeStr = new Date().toJSON()
         var dataURL = canvasScr.toDataURL();
@@ -729,4 +736,3 @@ setButtonActions();
 singleMode();
 
 anim()
-
