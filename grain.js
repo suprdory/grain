@@ -394,8 +394,7 @@ function setButtonActions() {
         const icon = fullScreenBtn.querySelector('i');
         icon.textContent = playPauseBtn.classList.contains('fullScreen') ? 'close_fullscreen' : 'fullscreen';
         playPauseBtn.classList.contains('fullScreen') ? openFullscreen() : closeFullscreen();
-        // anim();
-        // log(play)
+        
     });
 
 
@@ -418,6 +417,7 @@ function setButtonActions() {
         const icon = playPauseBtn.querySelector('i');
         icon.textContent = playPauseBtn.classList.contains('paused') ? 'pause' : 'play_arrow';
         playPauseBtn.classList.contains('paused') ? play = false : play = true;
+        removeFalling(paneB,lastSourceColumn)
         anim();
         // log(play)
     });
