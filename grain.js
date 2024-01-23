@@ -87,7 +87,7 @@ function add_grain(pane, x, colour) {
         pix.data[0] = colour[0];
         pix.data[1] = colour[1];
         pix.data[2] = colour[2];
-        pix.data[3]= 255
+        pix.data[3] = 255
         pane.ctx.putImageData(pix, x, pane.Y - pane.height[x] - 1);
         pane.height[x]++;
         pane.dhdx[x]--;
@@ -100,6 +100,24 @@ function add_grain(pane, x, colour) {
     }
     // dhdx = diff(height);
 }
+function drawFalling(pane, x, colour) {
+    pix.data[0] = colour[0];
+    pix.data[1] = colour[1];
+    pix.data[2] = colour[2];
+    pix.data[3] = 255
+    for (let y=0;y<(pane.Y-pane.height[x]);y++){
+        if (Math.random()>0.95){
+        pane.ctx.putImageData(pix,x,y)}
+    }
+ 
+
+}
+function removeFalling(pane,x){
+    for (let y=0;y<(pane.Y-pane.height[x]);y++){
+        pane.ctx.putImageData(pane.pix0,x,y)
+    }
+}
+
 function removeGrain(pane, x, pix) {
     // log(pane.height)
     if (pane.height[x] - pane.base[x] > 0) {
@@ -464,7 +482,7 @@ function clearPane(pane) {
     n = 0;
 }
 function shuffle() {
-    let Xs = [50, 75, 100, 150, 200,400];
+    let Xs = [50, 75, 100, 150, 200, 400];
     X = getRandomElement(Xs)
     // X = 50
     sourceColumn = Math.floor((Math.random() * X))
@@ -494,6 +512,7 @@ function invertY(pane) {
 
 }
 function flip() {
+    removeFalling(paneB,lastSourceColumn)
     invertY(paneT)
     invertY(paneB)
 
@@ -670,25 +689,32 @@ function splitMode() {
     n = 0
 }
 function anim() {
+    let colour
     if (split) {
+        removeFalling(paneB,lastSourceColumn)
         for (let i = 0; i < speed; i++) {
             if (removeGrain(paneT, sourceColumn, pix)) {
-                add_grain(paneB, sourceColumn, pix.data);
-                paneBinUse = true;
-                n++
+                add_grain(paneB, sourceColumn, pix.data);  
             }
+            drawFalling(paneB, sourceColumn, pix.data)
+            lastSourceColumn=sourceColumn;
+            paneBinUse = true;
         }
         if (play) {
             requestAnimationFrame(anim);
         }
     }
     else {
+        removeFalling(paneB,lastSourceColumn)
         for (let i = 0; i < speed; i++) {
-            let colour = colours[((colx % nCols) + nCols) % nCols]
+            colour = colours[((colx % nCols) + nCols) % nCols]
             add_grain(paneB, sourceColumn, colour)
-            paneBinUse = true;
             colx += colDir;
         }
+        paneBinUse = true;
+        lastSourceColumn=sourceColumn;
+        drawFalling(paneB, sourceColumn, colour)
+        
         if (play) {
             requestAnimationFrame(anim);
         }
@@ -723,18 +749,18 @@ function animInvert() {
 
     function animDown() {
         // log('animDown',n)
-        n-=1/nFrames
-        t=1-n*1
+        n -= 1 / nFrames
+        t = 1 - n * 1
         // log(t)
         canvasTop.style.setProperty('height', 'calc(' + t * (1.0 - topFrac) + ' * (100% - 64px))');
-        canvasTop.style.setProperty('top', 'calc(' + n*1 *topFrac + ' * (100% - 64px))');
+        canvasTop.style.setProperty('top', 'calc(' + n * 1 * topFrac + ' * (100% - 64px))');
         canvasBot.style.setProperty('height', 'calc(' + t * (1.0 - topFrac) + ' * (100% - 64px))');
         if (n > 0.0) {
             requestAnimationFrame(animDown)
         }
-        else{
+        else {
             canvasTop.style.setProperty('height', 'calc(' + topFrac + ' * (100% - 64px))');
-            canvasTop.style.setProperty('top',0);
+            canvasTop.style.setProperty('top', 0);
             canvasBot.style.setProperty('height', 'calc(' + (1.0 - topFrac) + ' * (100% - 64px))');
             canvasBot.style.setProperty('top', 'calc(' + topFrac + ' * (100% - 64px))');
         }
@@ -742,23 +768,24 @@ function animInvert() {
     }
     function animUp() {
         // log('animUp')
-        n+=1/nFrames
-        t=1-n*1
+        n += 1 / nFrames
+        t = 1 - n * 1
         canvasTop.style.setProperty('height', 'calc(' + t * (1.0 - topFrac) + ' * (100% - 64px))');
-        canvasTop.style.setProperty('top', 'calc(' + n*1 *topFrac + ' * (100% - 64px))');
+        canvasTop.style.setProperty('top', 'calc(' + n * 1 * topFrac + ' * (100% - 64px))');
         canvasBot.style.setProperty('height', 'calc(' + t * (1.0 - topFrac) + ' * (100% - 64px))');
         if (n < 1.0) {
             requestAnimationFrame(animUp)
         }
-        else{
+        else {
             flip()
             animDown()
         }
     }
 }
 
-let n, nMax, sourceColumn, speed, paneT, paneB, topFrac, X, paneBinUse
-let colDir, colx, nCols, colours, colourSpeed, colourMapName
+let sourceColumn, speed, paneT, paneB, topFrac, X, paneBinUse
+let colDir, colx, nCols, colours, colourSpeed, colourMapName, fGrains
+let lastSourceColumn=0
 let split = false;
 
 // get canvas, contexts, and pixel, objs
@@ -775,7 +802,7 @@ canvasBot.addEventListener('click', setSourceColumn);
 canvasTop.addEventListener('click', setSourceColumn);
 
 let play = true
-n = 0;
+// n = 0;
 colx = 0;
 shuffle();
 if (colDir == -1) { colx = -1 }
@@ -784,14 +811,3 @@ setButtonActions();
 
 singleMode();
 anim()
-
-
-// splitMode()
-// for (let i=0;i<1000;i++){
-//     add_grain(paneB,sourceColumn,[200,100,100])
-// }
-
-
-// animInvert()
-
-
