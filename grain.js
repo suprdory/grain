@@ -87,6 +87,7 @@ function add_grain(pane, x, colour) {
         pix.data[0] = colour[0];
         pix.data[1] = colour[1];
         pix.data[2] = colour[2];
+        pix.data[3]= 255
         pane.ctx.putImageData(pix, x, pane.Y - pane.height[x] - 1);
         pane.height[x]++;
         pane.dhdx[x]--;
@@ -107,6 +108,7 @@ function removeGrain(pane, x, pix) {
         pix.data[0] = pixOut[0]
         pix.data[1] = pixOut[1]
         pix.data[2] = pixOut[2]
+        pix.data[2] = 255
         pane.ctx.putImageData(pane.pix0, x, pane.Y - 1)
         if (pane.height[x] > 1) {
             pane.base[x]++; // increment base height, if grains above
@@ -723,6 +725,7 @@ let pix = canvasBot.getContext("2d",
         alpha: false,
         willReadFrequently: true,
     }).getImageData(0, 0, 1, 1);
+// log(pix)
 
 canvasBot.addEventListener('click', setSourceColumn);
 canvasTop.addEventListener('click', setSourceColumn);
