@@ -426,7 +426,7 @@ function setButtonActions() {
 
     const flipButton = document.getElementById('flipBtn');
     flipButton.addEventListener('click', () => {
-        flip();
+        animInvert();
     })
 
     const splitButton = document.getElementById('splitBtn');
@@ -665,7 +665,7 @@ function splitMode() {
         nMax = X * fillRows;
     }
     else (
-        flip()
+        animInvert()
     )
     n = 0
 }
@@ -712,6 +712,50 @@ function singleMode() {
     colours = createColormap({ colormap: colourMapName, format: 'rgba', nshades: nCols, })
     // log('nCols',nCols,colours.length)
 }
+function animInvert() {
+    let nFrames = 15
+    let n = 0
+    let t;
+    let topFrac = 0.5
+    animUp()
+    // flip()
+    // animDown()
+
+    function animDown() {
+        // log('animDown',n)
+        n-=1/nFrames
+        t=1-n*1
+        // log(t)
+        canvasTop.style.setProperty('height', 'calc(' + t * (1.0 - topFrac) + ' * (100% - 64px))');
+        canvasTop.style.setProperty('top', 'calc(' + n*1 *topFrac + ' * (100% - 64px))');
+        canvasBot.style.setProperty('height', 'calc(' + t * (1.0 - topFrac) + ' * (100% - 64px))');
+        if (n > 0.0) {
+            requestAnimationFrame(animDown)
+        }
+        else{
+            canvasTop.style.setProperty('height', 'calc(' + topFrac + ' * (100% - 64px))');
+            canvasTop.style.setProperty('top',0);
+            canvasBot.style.setProperty('height', 'calc(' + (1.0 - topFrac) + ' * (100% - 64px))');
+            canvasBot.style.setProperty('top', 'calc(' + topFrac + ' * (100% - 64px))');
+        }
+
+    }
+    function animUp() {
+        // log('animUp')
+        n+=1/nFrames
+        t=1-n*1
+        canvasTop.style.setProperty('height', 'calc(' + t * (1.0 - topFrac) + ' * (100% - 64px))');
+        canvasTop.style.setProperty('top', 'calc(' + n*1 *topFrac + ' * (100% - 64px))');
+        canvasBot.style.setProperty('height', 'calc(' + t * (1.0 - topFrac) + ' * (100% - 64px))');
+        if (n < 1.0) {
+            requestAnimationFrame(animUp)
+        }
+        else{
+            flip()
+            animDown()
+        }
+    }
+}
 
 let n, nMax, sourceColumn, speed, paneT, paneB, topFrac, X, paneBinUse
 let colDir, colx, nCols, colours, colourSpeed, colourMapName
@@ -737,6 +781,17 @@ shuffle();
 if (colDir == -1) { colx = -1 }
 trackPointerMovement();
 setButtonActions();
-singleMode();
 
+singleMode();
 anim()
+
+
+// splitMode()
+// for (let i=0;i<1000;i++){
+//     add_grain(paneB,sourceColumn,[200,100,100])
+// }
+
+
+// animInvert()
+
+
