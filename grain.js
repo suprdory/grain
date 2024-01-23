@@ -108,7 +108,7 @@ function removeGrain(pane, x, pix) {
         pix.data[0] = pixOut[0]
         pix.data[1] = pixOut[1]
         pix.data[2] = pixOut[2]
-        pix.data[2] = 255
+        pix.data[3] = 255
         pane.ctx.putImageData(pane.pix0, x, pane.Y - 1)
         if (pane.height[x] > 1) {
             pane.base[x]++; // increment base height, if grains above
