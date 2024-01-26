@@ -481,7 +481,7 @@ function clearPane(pane) {
     n = 0;
 }
 function shuffle() {
-    let Xs = [100, 150, 200, 400, 600];
+    let Xs = [100, 150, 200, 400];
     X = getRandomElement(Xs)
     // X = 50
     sourceColumn = Math.floor((Math.random() * X))
