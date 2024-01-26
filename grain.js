@@ -417,8 +417,8 @@ function setButtonActions() {
         const icon = playPauseBtn.querySelector('i');
         icon.textContent = playPauseBtn.classList.contains('paused') ? 'pause' : 'play_arrow';
         playPauseBtn.classList.contains('paused') ? play = false : play = true;
-        removeFalling(paneB, lastSourceColumn)
         anim();
+        removeFalling(paneB, lastSourceColumn)
         // log(play)
     });
 
