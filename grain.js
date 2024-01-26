@@ -418,7 +418,6 @@ function setButtonActions() {
         icon.textContent = playPauseBtn.classList.contains('paused') ? 'pause' : 'play_arrow';
         playPauseBtn.classList.contains('paused') ? play = false : play = true;
         anim();
-        removeFalling(paneB, lastSourceColumn)
         // log(play)
     });
 
@@ -703,6 +702,9 @@ function anim() {
         if (play) {
             requestAnimationFrame(anim);
         }
+        else{
+            removeFalling(paneB, lastSourceColumn)
+        }
     }
     else {
         removeFalling(paneB, lastSourceColumn)
@@ -717,6 +719,9 @@ function anim() {
 
         if (play) {
             requestAnimationFrame(anim);
+        }
+        else{
+            removeFalling(paneB, lastSourceColumn)
         }
     }
 }
