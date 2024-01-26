@@ -105,19 +105,19 @@ function drawFalling(pane, x, colour) {
     pix.data[1] = colour[1];
     pix.data[2] = colour[2];
     pix.data[3] = 255
-    for (let y=0;y<(pane.Y-pane.height[x]);y++){
-        if (Math.random()>0.95){
-        pane.ctx.putImageData(pix,x,y)}
+    for (let y = 0; y < (pane.Y - pane.height[x]); y++) {
+        if (Math.random() > 0.95) {
+            pane.ctx.putImageData(pix, x, y)
+        }
     }
- 
+
 
 }
-function removeFalling(pane,x){
-    for (let y=0;y<(pane.Y-pane.height[x]);y++){
-        pane.ctx.putImageData(pane.pix0,x,y)
+function removeFalling(pane, x) {
+    for (let y = 0; y < (pane.Y - pane.height[x]); y++) {
+        pane.ctx.putImageData(pane.pix0, x, y)
     }
 }
-
 function removeGrain(pane, x, pix) {
     // log(pane.height)
     if (pane.height[x] - pane.base[x] > 0) {
@@ -394,7 +394,7 @@ function setButtonActions() {
         const icon = fullScreenBtn.querySelector('i');
         icon.textContent = playPauseBtn.classList.contains('fullScreen') ? 'close_fullscreen' : 'fullscreen';
         playPauseBtn.classList.contains('fullScreen') ? openFullscreen() : closeFullscreen();
-        
+
     });
 
 
@@ -417,7 +417,7 @@ function setButtonActions() {
         const icon = playPauseBtn.querySelector('i');
         icon.textContent = playPauseBtn.classList.contains('paused') ? 'pause' : 'play_arrow';
         playPauseBtn.classList.contains('paused') ? play = false : play = true;
-        removeFalling(paneB,lastSourceColumn)
+        removeFalling(paneB, lastSourceColumn)
         anim();
         // log(play)
     });
@@ -482,7 +482,7 @@ function clearPane(pane) {
     n = 0;
 }
 function shuffle() {
-    let Xs = [50, 75, 100, 150, 200, 400];
+    let Xs = [100, 150, 200, 400, 600];
     X = getRandomElement(Xs)
     // X = 50
     sourceColumn = Math.floor((Math.random() * X))
@@ -512,7 +512,7 @@ function invertY(pane) {
 
 }
 function flip() {
-    removeFalling(paneB,lastSourceColumn)
+    removeFalling(paneB, lastSourceColumn)
     invertY(paneT)
     invertY(paneB)
 
@@ -691,13 +691,13 @@ function splitMode() {
 function anim() {
     let colour
     if (split) {
-        removeFalling(paneB,lastSourceColumn)
+        removeFalling(paneB, lastSourceColumn)
         for (let i = 0; i < speed; i++) {
             if (removeGrain(paneT, sourceColumn, pix)) {
-                add_grain(paneB, sourceColumn, pix.data);  
+                add_grain(paneB, sourceColumn, pix.data);
             }
             drawFalling(paneB, sourceColumn, pix.data)
-            lastSourceColumn=sourceColumn;
+            lastSourceColumn = sourceColumn;
             paneBinUse = true;
         }
         if (play) {
@@ -705,16 +705,16 @@ function anim() {
         }
     }
     else {
-        removeFalling(paneB,lastSourceColumn)
+        removeFalling(paneB, lastSourceColumn)
         for (let i = 0; i < speed; i++) {
             colour = colours[((colx % nCols) + nCols) % nCols]
             add_grain(paneB, sourceColumn, colour)
             colx += colDir;
         }
         paneBinUse = true;
-        lastSourceColumn=sourceColumn;
+        lastSourceColumn = sourceColumn;
         drawFalling(paneB, sourceColumn, colour)
-        
+
         if (play) {
             requestAnimationFrame(anim);
         }
@@ -785,7 +785,7 @@ function animInvert() {
 
 let sourceColumn, speed, paneT, paneB, topFrac, X, paneBinUse
 let colDir, colx, nCols, colours, colourSpeed, colourMapName, fGrains
-let lastSourceColumn=0
+let lastSourceColumn = 0
 let split = false;
 
 // get canvas, contexts, and pixel, objs
