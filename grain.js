@@ -421,7 +421,6 @@ function setButtonActions() {
         // log(play)
     });
 
-
     const clearButton = document.getElementById('clearBtn');
     clearButton.addEventListener('click', () => {
         clearScreen()
@@ -448,26 +447,27 @@ function setButtonActions() {
 
     const splitButton = document.getElementById('splitBtn');
     splitButton.addEventListener('click', () => {
-        splitButton.classList.toggle('split');
-        const icon = splitButton.querySelector('i');
-
-        if (splitButton.classList.contains('split')) {
-            icon.textContent = 'crop_portrait'
-            split = true
-            flipButton.style.display = 'block';
-            clearButton.style.display = 'none';
-            splitMode();
-        }
-        else {
-            icon.textContent = 'splitscreen'
-            split = false
-            flipButton.style.display = 'none';
-            clearButton.style.display = 'block';
-            singleMode();
-        }
-
+      switchMode(splitButton,flipButton,clearButton)
     })
 
+}
+function switchMode(splitButton,flipButton,clearButton){
+    splitButton.classList.toggle('split');
+    const icon = splitButton.querySelector('i');
+    if (splitButton.classList.contains('split')) {
+        icon.textContent = 'crop_portrait'
+        split = true
+        flipButton.style.display = 'block';
+        clearButton.style.display = 'none';
+        splitMode();
+    }
+    else {
+        icon.textContent = 'splitscreen'
+        split = false
+        flipButton.style.display = 'none';
+        clearButton.style.display = 'block';
+        singleMode();
+    }
 }
 function clearScreen() {
     clearPane(paneB);
@@ -789,7 +789,7 @@ function animInvert() {
 }
 
 let sourceColumn, speed, paneT, paneB, topFrac, X, paneBinUse
-let colDir, colx, nCols, colours, colourSpeed, colourMapName, fGrains
+let colDir, colx, nCols, colours, colourSpeed, colourMapName, n,nMax
 let lastSourceColumn = 0
 let split = false;
 
@@ -814,5 +814,15 @@ if (colDir == -1) { colx = -1 }
 trackPointerMovement();
 setButtonActions();
 
-singleMode();
+// enable single mode at start
+// singleMode();
+
+
+// enable double mode at start
+const clearButton = document.getElementById('clearBtn');
+const splitButton = document.getElementById('splitBtn');
+const flipButton = document.getElementById('flipBtn');
+switchMode(splitButton,flipButton,clearButton)
+
+
 anim()
